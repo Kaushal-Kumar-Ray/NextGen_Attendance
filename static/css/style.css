@@ -1,0 +1,261 @@
+/* ===============================
+   ROOT & GLOBAL
+================================ */
+:root {
+    --bg-main: #0b0f1a;
+    --glass: rgba(255,255,255,0.08);
+    --glass-border: rgba(255,255,255,0.18);
+    --neon: #00f5ff;
+    --purple: #7c7cff;
+    --text-main: #e5e7eb;
+    --muted: #9ca3af;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(circle at top, #111827, #020617);
+    color: var(--text-main);
+    font-family: "Inter", sans-serif;
+}
+
+/* ===============================
+   NAVBAR
+================================ */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(14px);
+}
+
+.glass {
+    background: var(--glass);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.nav-left {
+    font-family: "Orbitron", sans-serif;
+    font-size: 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: var(--neon);
+}
+
+.nav-right a {
+    margin-left: 22px;
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 14px;
+    position: relative;
+}
+
+.nav-right a::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon), var(--purple));
+    transition: 0.3s;
+}
+
+.nav-right a:hover::after {
+    width: 100%;
+}
+
+/* ===============================
+   CONTAINER & ANIMATIONS
+================================ */
+.container {
+    padding: 40px;
+}
+
+.fade-in {
+    animation: fadeUp 0.8s ease forwards;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===============================
+   HEADINGS
+================================ */
+h1 {
+    font-family: "Orbitron", sans-serif;
+    font-size: 32px;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, var(--neon), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ===============================
+   DASHBOARD CARDS
+================================ */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px;
+}
+
+.card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(0,245,255,0.25), transparent);
+    opacity: 0;
+    transition: 0.4s;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 30px rgba(0,245,255,0.25);
+}
+
+.card h2 {
+    font-size: 28px;
+    margin: 0;
+}
+
+.card p {
+    margin-top: 10px;
+    color: var(--muted);
+}
+
+/* ===============================
+   FORMS
+================================ */
+form {
+    max-width: 420px;
+    background: var(--glass);
+    padding: 30px;
+    border-radius: 18px;
+    border: 1px solid var(--glass-border);
+}
+
+label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin-top: 6px;
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: white;
+    outline: none;
+}
+
+input:focus {
+    border-color: var(--neon);
+    box-shadow: 0 0 10px rgba(0,245,255,0.3);
+}
+
+/* ===============================
+   BUTTONS
+================================ */
+button {
+    margin-top: 16px;
+    padding: 14px 22px;
+    background: linear-gradient(90deg, var(--neon), var(--purple));
+    border: none;
+    border-radius: 14px;
+    color: #020617;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(124,124,255,0.5);
+}
+
+/* ===============================
+   CANVAS (AI EFFECT)
+================================ */
+#canvas {
+    margin-top: 20px;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    background:
+        linear-gradient(var(--bg-main), var(--bg-main)) padding-box,
+        linear-gradient(90deg, var(--neon), var(--purple)) border-box;
+    animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 10px rgba(0,245,255,0.3); }
+    50% { box-shadow: 0 0 30px rgba(124,124,255,0.5); }
+    100% { box-shadow: 0 0 10px rgba(0,245,255,0.3); }
+}
+
+/* ===============================
+   STATUS TEXT
+================================ */
+#status {
+    margin-top: 14px;
+    font-weight: 600;
+    color: var(--neon);
+}
+
+/* ===============================
+   TABLES
+================================ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: var(--glass);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 14px;
+    text-align: left;
+}
+
+th {
+    background: rgba(255,255,255,0.12);
+    color: var(--neon);
+}
+
+tr:hover {
+    background: rgba(255,255,255,0.06);
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+
+    <!-- Futuristic Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="navbar glass">
+    <div class="nav-left">
+        <i class="fa-solid fa-robot"></i>
+        <span>AI Attendance</span>
+    </div>
+
+    <div class="nav-right">
+        <a href="/"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        <a href="/register"><i class="fa-solid fa-user-plus"></i> Register</a>
+        <a href="/attendance"><i class="fa-solid fa-camera"></i> Attendance</a>
+        <a href="/students"><i class="fa-solid fa-users"></i> Students</a>
+        <a href="/records"><i class="fa-solid fa-database"></i> Records</a>
+    </div>
+</nav>
+
+<div class="container fade-in">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

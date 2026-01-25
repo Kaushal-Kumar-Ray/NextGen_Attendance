@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Attendance Records</h1>
+
+<a href="/download-attendance">
+    <button>⬇ Download CSV</button>
+</a>
+
+<br><br>
+
+<table border="1" cellpadding="10" cellspacing="0">
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Time</th>
+    </tr>
+
+    {% for r in records %}
+    <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.name }}</td>
+        <td>{{ r.date }}</td>
+        <td>{{ r.time }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

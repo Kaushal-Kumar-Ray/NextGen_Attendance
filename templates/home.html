@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Dashboard</h1>
+
+<div class="cards">
+    <div class="card">
+        <h2>{{ total_students }}</h2>
+        <p>Total Students</p>
+    </div>
+    <div class="card">
+        <h2>{{ present_today }}</h2>
+        <p>Present Today</p>
+    </div>
+    <div class="card">
+        <h2>{{ absent_today }}</h2>
+        <p>Absent Today</p>
+    </div>
+    <div class="card">
+        <h2>{{ today }}</h2>
+        <p>Date</p>
+    </div>
+</div>
+
+{% endblock %}

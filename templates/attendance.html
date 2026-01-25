@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Mark Attendance</h1>
+<p>Look at the camera. Attendance will be marked automatically.</p>
+
+<canvas id="canvas" style="border:2px solid #333;"></canvas>
+<p id="status"></p>
+
+<script src="/static/js/attendance.js"></script>
+
+{% endblock %}
