@@ -9,6 +9,7 @@ CREATE TABLE attendance (
     student_id VARCHAR,
     date DATE,
     time TIME,
+    UNIQUE(student_id, date), -- 🔥 prevents duplicate attendance
     FOREIGN KEY (student_id) REFERENCES students(id)
 );
 

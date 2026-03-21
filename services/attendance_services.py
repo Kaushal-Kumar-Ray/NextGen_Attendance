@@ -1,13 +1,9 @@
 import base64
 import numpy as np
 import cv2
-from datetime import datetime
-import os
-from services.face_service import recognize_face
-from services.csv_service import load_attendance
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-ATTENDANCE_FILE = os.path.join(BASE_DIR, "attendance.csv")
+from services.face_service import recognize_face
+from models.attendance_model import mark_attendance
 
 
 def process_attendance(data):
@@ -16,32 +12,34 @@ def process_attendance(data):
     if not image_data:
         return {"faces": []}
 
+    # Decode image
     encoded = image_data.split(",")[1]
     img_bytes = base64.b64decode(encoded)
     img_array = np.frombuffer(img_bytes, np.uint8)
     frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
 
+    if frame is None:
+        return {"faces": []}
+
     names = recognize_face(frame)
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    now_time = datetime.now().strftime("%H:%M:%S")
-
-    attendance = load_attendance()
-    present_ids = {a["id"] for a in attendance if a.get("date") == today}
-
     results = []
+    valid_student =None
 
     for name in names:
-        student_id = name
+        if name != "Unknown":
+            valid_student == name
+            break
 
-        if student_id != "Unknown" and student_id not in present_ids:
-            if not os.path.exists(ATTENDANCE_FILE):
-                with open(ATTENDANCE_FILE, "w") as f:
-                    f.write("id,date,time\n")
+    if valid_student :
+        # 🔥 SAVE FIRST (before any crash)
+        print("detected:", valid_student)
+        try:
+            mark_attendance(valid_student)
+            print(f"[DB SUCCESS] {valid_student}")
+        except Exception as e:
+            print("[DB ERROR]:", e)
 
-            with open(ATTENDANCE_FILE, "a") as f:
-                f.write(f"{student_id},{today},{now_time}\n")
-
-        results.append({"name": student_id})
-
+    for name in names:
+         results.append({"name": name})
     return {"faces": results}

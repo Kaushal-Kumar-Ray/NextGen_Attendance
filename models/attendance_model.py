@@ -4,11 +4,15 @@ def mark_attendance(student_id):
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        INSERT INTO attendance (student_id, date, time)
-        VALUES (%s, CURRENT_DATE, CURRENT_TIME)
-    """, (student_id,))
+    try:
+        cur.execute("""
+            INSERT INTO attendance (student_id, date, time)
+            VALUES (%s, CURRENT_DATE, CURRENT_TIME)
+            ON CONFLICT (student_id, date) DO NOTHING
+        """, (student_id,))
+        conn.commit()
+    except Exception as e:
+        print("DB ERROR:", e)
 
-    conn.commit()
     cur.close()
     conn.close()

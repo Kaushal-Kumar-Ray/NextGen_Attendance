@@ -1,3 +1,4 @@
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const video = document.createElement("video");
@@ -13,8 +14,12 @@ navigator.mediaDevices.getUserMedia({ video: true })
     })
     .catch(() => alert("Camera access denied"));
 
-setInterval(() => {
-    if (!video.videoWidth) return;
+let isProcessing = false;
+
+window.loop = setInterval(() => {
+    if (!video.videoWidth || isProcessing) return;
+
+    isProcessing = true;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -30,19 +35,23 @@ setInterval(() => {
     })
     .then(res => res.json())
     .then(data => {
+        isProcessing = false;
+
         ctx.drawImage(video, 0, 0);
 
         if (!data.faces) return;
 
-        ctx.font = "18px Arial";
-        ctx.lineWidth = 3;
+        ctx.font = "20px Arial";
 
-        data.faces.forEach(face => {
-            ctx.strokeStyle = face.name === "Unknown" ? "red" : "lime";
-            ctx.fillStyle = "yellow";
-
-            ctx.strokeRect(face.x, face.y, face.w, face.h);
-            ctx.fillText(face.name, face.x, face.y - 8);
+        // 🔥 SHOW NAME EVEN WITHOUT BOX
+        data.faces.forEach((face, i) => {
+            ctx.fillStyle = face.name === "Unknown" ? "red" : "lime";
+            ctx.fillText(face.name, 20, 40 + i * 30);
         });
+    })
+    .catch(err => {
+        console.error(err);
+        isProcessing = false;
     });
-}, 1200);
+
+}, 6000);

@@ -1,28 +1,35 @@
-import csv
-import os
-
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-STUDENTS_FILE = os.path.join(BASE_DIR, "students.csv")
-ATTENDANCE_FILE = os.path.join(BASE_DIR, "attendance.csv")
-DATASET_DIR = os.path.join(BASE_DIR, "dataset")
+from database.db import get_connection
 
 def load_students():
-    if not os.path.exists(STUDENTS_FILE):
-        return []
+    conn = get_connection()
+    cur = conn.cursor()
 
-    students = []
-    with open(STUDENTS_FILE, newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            row = {k.lower(): v.strip() for k, v in row.items()}
-            folder = os.path.join(DATASET_DIR, f"{row['id']}_{row['name']}")
-            if os.path.isdir(folder):
-                students.append(row)
-    return students
+    cur.execute("SELECT id, name FROM students")
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return [{"id": r[0], "name": r[1]} for r in rows]
+
 
 def load_attendance():
-    if not os.path.exists(ATTENDANCE_FILE):
-        return []
+    conn = get_connection()
+    cur = conn.cursor()
 
-    with open(ATTENDANCE_FILE, newline="") as f:
-        return list(csv.DictReader(f))
+    cur.execute("""
+        SELECT s.id, s.name, a.date, a.time
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        ORDER BY a.date DESC
+    """)
+
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return [
+        {"id": r[0], "name": r[1], "date": str(r[2]), "time": str(r[3])}
+        for r in rows
+    ]
