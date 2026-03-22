@@ -1,12 +1,12 @@
 from flask import Blueprint, render_template, send_file
-from services.csv_service import load_students, load_attendance
+from services.db_service import load_students, load_attendance
 from datetime import datetime
 import os
 
 main_bp = Blueprint("main", __name__)
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-ATTENDANCE_FILE = os.path.join(BASE_DIR, "attendance.csv")
+
 
 @main_bp.route("/")
 def dashboard():
@@ -60,6 +60,6 @@ def records_page():
         records=load_attendance()
     )
 
-@main_bp.route("/download-attendance")
+"""@main_bp.route("/download-attendance")
 def download_attendance():
-    return send_file(ATTENDANCE_FILE, as_attachment=True)
+    return send_file(ATTENDANCE_FILE, as_attachment=True)"""

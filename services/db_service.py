@@ -30,6 +30,11 @@ def load_attendance():
     conn.close()
 
     return [
-        {"id": r[0], "name": r[1], "date": str(r[2]), "time": str(r[3])}
+        {
+            "id": r[0],
+            "name": r[1],
+            "date": str(r[2]),
+            "time": str(r[3])
+        }
         for r in rows
     ]

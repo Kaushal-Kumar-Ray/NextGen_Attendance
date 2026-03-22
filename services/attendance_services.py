@@ -28,7 +28,7 @@ def process_attendance(data):
 
     for name in names:
         if name != "Unknown":
-            valid_student == name
+            valid_student = name
             break
 
     if valid_student :

@@ -54,4 +54,4 @@ window.loop = setInterval(() => {
         isProcessing = false;
     });
 
-}, 6000);
+}, 2000);
