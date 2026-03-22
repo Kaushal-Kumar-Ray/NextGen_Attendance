@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script>
+localStorage.clear();  // ✅ keep this
+</script>
+
+<h1 style="text-align:center;">Login</h1>
+
+<div class="card" style="max-width:400px; margin:auto;">
+
+    <label>Select Role:</label><br><br>
+
+    <select id="role">
+        <option value="student">Student</option>
+        <option value="admin">Admin</option>
+    </select>
+
+    <br><br>
+
+    <input type="text" id="id" placeholder="Enter Username">
+    <input type="password" id="password" placeholder="Enter Password">
+
+    <button onclick="login()">Login</button>
+
+    <p id="msg" style="color:red;"></p>
+
+</div>
+<style>
+.card {
+    position: relative;
+    z-index: 9999;
+}
+
+.container {
+    position: relative;
+    z-index: 9999;
+}
+</style> 
+<script>
+function login() {
+    const id = document.getElementById("id").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role = document.getElementById("role").value;
+
+    fetch("/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({id, password, role})
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("LOGIN RESPONSE:", data); // 🔥 DEBUG
+
+        if (data.success) {
+
+            // 🔥 THIS WAS MISSING / BROKEN
+            localStorage.setItem("role", data.role);
+            localStorage.setItem("student_id", data.id);
+
+            console.log("SAVED ROLE:", localStorage.getItem("role"));
+
+            if (data.role === "admin") {
+                window.location.href = "/dashboard";
+            } else {
+                window.location.href = "/student-dashboard";
+            }
+
+        } else {
+            alert(data.message);
+        }
+    });
+}
+</script>
+
+{% endblock %}

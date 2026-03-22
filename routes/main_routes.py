@@ -9,6 +9,11 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 @main_bp.route("/")
+def root():
+    return render_template("login.html")
+
+
+@main_bp.route("/dashboard")
 def dashboard():
     students = load_students()
     attendance = load_attendance()
@@ -23,6 +28,7 @@ def dashboard():
         absent_today=len(students) - len(present_ids),
         today=today
     )
+
 
 @main_bp.route("/register")
 def register():
@@ -53,12 +59,52 @@ def students_page():
         absent=len(students) - len(present_ids)
     )
 
+@main_bp.route("/student-leaves")
+def student_leaves_page():
+    return render_template("student_leaves.html")
+
+
 @main_bp.route("/records")
 def records_page():
     return render_template(
         "records.html",
         records=load_attendance()
     )
+
+@main_bp.route("/student-dashboard")
+def student_dashboard():
+    return render_template("student_dashboard.html")
+
+
+
+
+
+@main_bp.route("/student/<id>/attendance")
+def student_attendance(id):
+    from services.db_service import load_attendance, load_students
+
+    attendance = load_attendance()
+    students = load_students()
+
+    student = next((s for s in students if s["id"] == id), None)
+
+    total_days = len(set([a["date"] for a in attendance]))
+    present_days = len([a for a in attendance if a["id"] == id])
+
+    percentage = 0
+    if total_days > 0:
+        percentage = round((present_days / total_days) * 100, 2)
+
+    return {
+        "name": student["name"] if student else "Unknown",
+        "percentage": percentage
+    }
+
+
+@main_bp.route("/admin/leaves")
+def admin_leaves():
+    return render_template("leave_requests.html")
+
 
 """@main_bp.route("/download-attendance")
 def download_attendance():

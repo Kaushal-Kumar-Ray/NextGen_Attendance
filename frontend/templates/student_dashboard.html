@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Student Dashboard</h1>
+
+<div class="card" style="max-width:500px;">
+
+```
+<h2 id="studentName">Loading...</h2>
+<p><strong>ID:</strong> <span id="studentId"></span></p>
+
+<hr style="margin:20px 0;">
+
+<h3>Attendance</h3>
+<h2 id="percentage">--%</h2>
+<p id="statusText"></p>
+
+<button id="leaveBtn" onclick="applyLeave()">
+    Apply Leave
+</button>
+
+<p id="msg"></p>
+```
+
+</div>
+
+<script>
+const studentId = localStorage.getItem("student_id");
+
+if (!studentId) {
+    window.location.href = "/login";
+}
+
+// 🔥 Fetch student data
+fetch(`/student/${studentId}/attendance`)
+.then(res => res.json())
+.then(data => {
+
+    document.getElementById("studentId").innerText = studentId;
+    document.getElementById("studentName").innerText = data.name;
+    document.getElementById("percentage").innerText = data.percentage + "%";
+
+    if (data.percentage >= 80) {
+        document.getElementById("statusText").innerText = "✅ Good Attendance";
+    } else {
+        document.getElementById("statusText").innerText = "⚠ Low Attendance (Approval Needed)";
+    }
+});
+
+// 🔥 Apply Leave
+function applyLeave() {
+
+    const reason = prompt("Enter reason for leave:");
+
+    if (!reason) return;
+
+    fetch("/apply-leave", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            student_id: studentId,
+            reason: reason
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("msg").innerText = data.message;
+    });
+}
+
+</script>
+
+{% endblock %}
