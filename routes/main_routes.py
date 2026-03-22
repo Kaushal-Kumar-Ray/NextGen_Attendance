@@ -41,7 +41,7 @@ def students_page():
     present_ids = {a["id"] for a in attendance if a.get("date") == today}
 
     enriched = [
-        {"id": s["id"], "name": s["name"], "present": s["id"] in present_ids}
+        {"id": s["id"], "name": s["name"], "present": s["id"] in present_ids, "image_url": s.get("image_url") }
         for s in students
     ]
 

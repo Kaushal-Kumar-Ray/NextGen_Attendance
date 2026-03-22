@@ -4,13 +4,16 @@ def load_students():
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT id, name FROM students")
+    cur.execute("SELECT id, name, image_url FROM students")
     rows = cur.fetchall()
 
     cur.close()
     conn.close()
 
-    return [{"id": r[0], "name": r[1]} for r in rows]
+    return [
+    {"id": r[0], "name": r[1], "image_url": r[2]}
+    for r in rows
+]
 
 
 def load_attendance():

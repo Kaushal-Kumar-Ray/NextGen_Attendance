@@ -14,20 +14,31 @@
         <th>ID</th>
         <th>Name</th>
         <th>Status</th>
+        <th>Image</th>
     </tr>
 
     {% for s in students %}
     <tr>
-        <td>{{ s.id }}</td>
-        <td>{{ s.name }}</td>
-        <td>
-            {% if s.present %}
-                <span style="color:green;font-weight:bold;">Present</span>
-            {% else %}
-                <span style="color:red;font-weight:bold;">Absent</span>
-            {% endif %}
-        </td>
-    </tr>
+    <td>{{ s.id }}</td>
+    <td>{{ s.name }}</td>
+
+    <td>
+        {% if s.present %}
+            <span style="color:green;font-weight:bold;">Present</span>
+        {% else %}
+            <span style="color:red;font-weight:bold;">Absent</span>
+        {% endif %}
+    </td>
+
+    <td>
+        {% if s.image_url %}
+            <img src="{{ s.image_url }}" width="50" height="50"
+                 style="border-radius:50%; object-fit:cover; border:2px solid #00f5ff;">
+        {% else %}
+            <span style="color:gray;">No Image</span>
+        {% endif %}
+    </td>
+</tr>
     {% endfor %}
 </table>
 

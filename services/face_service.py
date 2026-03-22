@@ -1,11 +1,14 @@
 import os
 import base64
+
 import numpy as np
 import cv2
 from deepface import DeepFace
 import pickle
 import time
 import gc
+import cloudinary.uploader
+from config.cloudinary_config import *
 
 # 🔥 Reduce TensorFlow logs
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -80,18 +83,21 @@ def capture_face(data):
 
     if done and key not in saved_students:
         try:
-            add_student(student_id, student_name)
-            saved_students.add(key)
-            print(f"[DB] Student saved: {student_id}")
-        except Exception as e:
-            print("[ERROR] Student DB:", e)
+            # take last face
+            _, buffer = cv2.imencode(".jpg", face)
 
+            result = cloudinary.uploader.upload(buffer.tobytes())
+            image_url = result["secure_url"]
+            add_student(student_id, student_name, image_url)
+            saved_students.add(key)
+            print("[DB] Student saved with image:", image_url)
+
+        except Exception as e:
+            print("[ERROR]:", e)
     return {
         "count": capture_counts[key],
-        "done": done
-    }
-
-
+        "done": capture_counts[key] >= CAPTURE_LIMIT
+        }   
 # ================= TRAIN =================
 def generate_embeddings():
     embeddings = []
