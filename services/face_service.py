@@ -70,10 +70,17 @@ def capture_face(data):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.2, 5)
 
+    # 🔥 FIX 1: handle no face case
+    if len(faces) == 0:
+        print("❌ No face detected")
+        return {"count": capture_counts[key], "done": False}
+
     save_dir = os.path.join(DATASET_DIR, key)
     os.makedirs(save_dir, exist_ok=True)
 
-    for (x, y, w, h) in faces[:1]:  # 🔥 limit to 1 face
+    face = None  # 🔥 FIX 2: initialize safely
+
+    for (x, y, w, h) in faces[:1]:
         if capture_counts[key] >= CAPTURE_LIMIT:
             break
 
@@ -89,23 +96,26 @@ def capture_face(data):
 
     done = capture_counts[key] >= CAPTURE_LIMIT
 
-    if done and key not in saved_students:
+    # 🔥 FIX 3: ensure face exists before using it
+    if done and key not in saved_students and face is not None:
         try:
-            # take last face
             _, buffer = cv2.imencode(".jpg", face)
 
             result = cloudinary.uploader.upload(buffer.tobytes())
             image_url = result["secure_url"]
+
             add_student(student_id, student_name, image_url)
             saved_students.add(key)
+
             print("[DB] Student saved with image:", image_url)
 
         except Exception as e:
             print("[ERROR]:", e)
+
     return {
         "count": capture_counts[key],
-        "done": capture_counts[key] >= CAPTURE_LIMIT
-        }   
+        "done": done
+    }
 # ================= TRAIN =================
 def generate_embeddings():
     embeddings = []
