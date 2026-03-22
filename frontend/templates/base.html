@@ -4,53 +4,41 @@
     <meta charset="UTF-8">
     <title>{{ title }}</title>
 
-    <!-- Futuristic Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
-    <!-- Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
- {% if request.path != '/' %}
-<nav class="navbar glass">
-    <div class="nav-left">
-        <i class="fa-solid fa-robot"></i>
-        <span>AI Attendance</span>
-    </div>
 
+<body>
+
+{% if request.path != "/" %}
+<nav class="navbar">
+    <div class="nav-left">🤖 NextGen Attendance</div>
     <div class="nav-right" id="navLinks"></div>
 </nav>
 {% endif %}
+
 <script>
-window.addEventListener("DOMContentLoaded", () => {
-    const role = localStorage.getItem("role");
-    console.log("NAV ROLE:", role); // 🔥 DEBUG
+const role = localStorage.getItem("role");
+const nav = document.getElementById("navLinks");
 
-    const nav = document.getElementById("navLinks");
-    if (!nav) return;
-
-    if (role === "admin") {
-        nav.innerHTML = `
-            <a href="/dashboard">Dashboard</a>
-            <a href="/register">Register</a>
-            <a href="/attendance">Attendance</a>
-            <a href="/students">Students</a>
-            <a href="/admin/leaves">Leaves</a>
-            <a href="/records">Records</a>
-        `;
-    } else if (role === "student") {
-        nav.innerHTML = `
-            <a href="/student-dashboard">Dashboard</a>
-            <a href="/student-leaves">My Leaves</a>
-        `;
-    }
-});
+if (role === "admin") {
+    nav.innerHTML = `
+        <a href="/dashboard">Dashboard</a>
+        <a href="/register">Register</a>
+        <a href="/attendance">Attendance</a>
+        <a href="/students">Students</a>
+        <a href="/admin/leaves">Leaves</a>
+        <a href="/records">Records</a>
+    `;
+} else if (role === "student") {
+    nav.innerHTML = `
+        <a href="/student-dashboard">Dashboard</a>
+        <a href="/student-leaves">My Leaves</a>
+    `;
+}
 </script>
 
-
-<div class="container fade-in">
+<div class="container">
     {% block content %}{% endblock %}
 </div>
 

@@ -9,37 +9,50 @@
     <strong>Absent:</strong> {{ absent }}
 </p>
 
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Image</th>
-    </tr>
+<table>
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Status</th>
+    <th>Attendance %</th>
+    <th>Image</th>
+</tr>
 
-    {% for s in students %}
-    <tr>
+{% for s in students %}
+<tr>
     <td>{{ s.id }}</td>
     <td>{{ s.name }}</td>
 
     <td>
         {% if s.present %}
-            <span style="color:green;font-weight:bold;">Present</span>
+            <span class="status-green">Present</span>
         {% else %}
-            <span style="color:red;font-weight:bold;">Absent</span>
+            <span class="status-red">Absent</span>
         {% endif %}
     </td>
 
     <td>
+        <div class="progress-bar">
+            <div class="progress-fill 
+                {% if s.percentage >= 80 %}good
+                {% elif s.percentage >= 50 %}mid
+                {% else %}low{% endif %}"
+                style="width: {{ s.percentage }}%">
+            </div>
+        </div>
+        <span>{{ s.percentage }}%</span>
+    </td>
+
+    <td>
         {% if s.image_url %}
-            <img src="{{ s.image_url }}" width="50" height="50"
-                 style="border-radius:50%; object-fit:cover; border:2px solid #00f5ff;">
+            <img src="{{ s.image_url }}" width="40" style="border-radius:50%">
         {% else %}
             <span style="color:gray;">No Image</span>
         {% endif %}
     </td>
 </tr>
-    {% endfor %}
+{% endfor %}
+
 </table>
 
 {% endblock %}

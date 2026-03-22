@@ -43,20 +43,32 @@ def students_page():
     students = load_students()
     attendance = load_attendance()
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    present_ids = {a["id"] for a in attendance if a.get("date") == today}
+    # Total unique days
+    total_days = len(set([a["date"] for a in attendance]))
 
-    enriched = [
-        {"id": s["id"], "name": s["name"], "present": s["id"] in present_ids, "image_url": s.get("image_url") }
-        for s in students
-    ]
+    enriched = []
+
+    for s in students:
+        present_days = len([a for a in attendance if a["id"] == s["id"]])
+
+        percentage = 0
+        if total_days > 0:
+            percentage = round((present_days / total_days) * 100, 2)
+
+        enriched.append({
+            "id": s["id"],
+            "name": s["name"],
+            "present": present_days > 0,
+            "percentage": percentage,
+            "image_url": s.get("image_url")
+        })
 
     return render_template(
         "students.html",
         students=enriched,
         total=len(students),
-        present=len(present_ids),
-        absent=len(students) - len(present_ids)
+        present=len([s for s in enriched if s["present"]]),
+        absent=len([s for s in enriched if not s["present"]])
     )
 
 @main_bp.route("/student-leaves")

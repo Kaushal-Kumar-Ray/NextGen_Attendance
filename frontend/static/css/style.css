@@ -1,207 +1,308 @@
-/* ===============================
-   ROOT & GLOBAL
-================================ */
-:root {
-    --bg-main: #0b0f1a;
-    --glass: rgba(255,255,255,0.08);
-    --glass-border: rgba(255,255,255,0.18);
-    --neon: #00f5ff;
-    --purple: #7c7cff;
-    --text-main: #e5e7eb;
-    --muted: #9ca3af;
-}
-
+/* ===== RESET ===== */
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    margin: 0;
-    background: radial-gradient(circle at top, #111827, #020617);
-    color: var(--text-main);
-    font-family: "Inter", sans-serif;
+/* ===== ROOT ===== */
+:root {
+    --bg: #0b0f1a;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.12);
+    --primary: #00f5ff;
+    --secondary: #7c7cff;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
 }
 
-/* ===============================
-   NAVBAR
-================================ */
+/* ===== BODY ===== */
+body {
+    font-family: "Inter", sans-serif;
+    background: radial-gradient(circle at top, #111827, #020617);
+    color: var(--text);
+}
+
+/* ===== NAVBAR ===== */
 .navbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    padding: 16px 32px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    padding: 16px 32px;
     backdrop-filter: blur(14px);
-}
-
-.glass {
-    background: var(--glass);
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--border);
 }
 
 .nav-left {
-    font-family: "Orbitron", sans-serif;
-    font-size: 18px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    color: var(--neon);
+    font-weight: 600;
+    color: var(--primary);
 }
 
 .nav-right a {
-    margin-left: 22px;
-    color: var(--text-main);
+    margin-left: 20px;
     text-decoration: none;
+    color: var(--text);
     font-size: 14px;
-    position: relative;
 }
 
-.nav-right a::after {
-    content: "";
-    position: absolute;
-    bottom: -6px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--neon), var(--purple));
-    transition: 0.3s;
+.nav-right a:hover {
+    color: var(--primary);
 }
 
-.nav-right a:hover::after {
-    width: 100%;
-}
-
-/* ===============================
-   CONTAINER & ANIMATIONS
-================================ */
+/* ===== CONTAINER ===== */
 .container {
     padding: 40px;
-    position: relative;
-    z-index: 10;
 }
 
-.fade-in {
-    animation: fadeUp 0.8s ease forwards;
+/* ===== CARDS ===== */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
 }
 
-@keyframes fadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ===============================
-   HEADINGS
-================================ */
-h1 {
-    font-family: "Orbitron", sans-serif;
-    font-size: 32px;
-    margin-bottom: 20px;
-    text-align: center;
-    background: linear-gradient(90deg, var(--neon), var(--purple));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* ===============================
-   LOGIN CARD CENTER FIX
-================================ */
 .card {
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
     border-radius: 16px;
-    padding: 30px;
-    max-width: 400px;
-    margin: 60px auto;
-    position: relative;
-    z-index: 9999; /* 🔥 FIX CLICK ISSUE */
+    transition: 0.3s;
 }
 
-/* ===============================
-   FORMS
-================================ */
-label {
-    font-size: 13px;
-    color: var(--muted);
+.card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
 }
 
+.card h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+/* ===== FORM ===== */
 input, select {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     margin-top: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
     background: transparent;
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
     color: white;
+}
+
+input:focus {
     outline: none;
+    border-color: var(--primary);
 }
 
-input:focus, select:focus {
-    border-color: var(--neon);
-    box-shadow: 0 0 10px rgba(0,245,255,0.3);
-}
-
-/* ===============================
-   BUTTONS
-================================ */
+/* ===== BUTTON ===== */
 button {
-    margin-top: 20px;
-    padding: 14px 22px;
-    background: linear-gradient(90deg, var(--neon), var(--purple));
+    padding: 12px 18px;
+    margin-top: 15px;
+    border-radius: 12px;
     border: none;
-    border-radius: 14px;
-    color: #020617;
-    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: black;
+    font-weight: 600;
 }
 
 button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px rgba(124,124,255,0.5);
+    opacity: 0.85;
 }
 
-/* ===============================
-   TABLES
-================================ */
+/* ===== TABLE ===== */
 table {
     width: 100%;
-    border-collapse: collapse;
     margin-top: 20px;
-    background: var(--glass);
-    border-radius: 14px;
-    overflow: hidden;
+    border-collapse: collapse;
 }
 
 th, td {
-    padding: 14px;
-    text-align: left;
+    padding: 12px;
 }
 
 th {
-    background: rgba(255,255,255,0.12);
-    color: var(--neon);
+    color: var(--primary);
+    text-align: left;
 }
 
-tr:hover {
-    background: rgba(255,255,255,0.06);
+tr {
+    border-bottom: 1px solid var(--border);
 }
 
-/* ===============================
-   🔥 FINAL FIX (CLICK ISSUE)
-================================ */
-body::before,
-body::after {
-    pointer-events: none !important;
+/* ===== STATUS ===== */
+.status-green { color: #00ff9c; }
+.status-red { color: #ff4d4d; }
+.status-yellow { color: #ffd166; }
+
+/* ===== CENTER ===== */
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.card, input, button, select {
-    pointer-events: auto !important;
+/* ===== FIX SELECT DROPDOWN ===== */
+select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    appearance: none; /* 🔥 remove default UI */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+/* Dropdown options */
+select option {
+    background-color: #0b0f1a; /* 🔥 dark bg */
+    color: #ffffff;
+}
+
+/* Add custom arrow */
+select {
+    background-image: linear-gradient(45deg, transparent 50%, #00f5ff 50%),
+                      linear-gradient(135deg, #00f5ff 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(50% - 3px),
+                         calc(100% - 15px) calc(50% - 3px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+/* Focus state */
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0,245,255,0.3);
+}
+
+/* ===== CAMERA UI ===== */
+.camera-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+}
+
+#canvas {
+    width: 100%;
+    max-width: 800px;  /* 🔥 bigger size */
+    border-radius: 16px;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 40px rgba(0,245,255,0.2);
+}
+
+/* ===== REGISTER PAGE ===== */
+.register-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+    margin-top: 40px;
+}
+
+/* Card */
+.register-card {
+    padding: 30px;
+}
+
+/* Camera */
+.camera-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#canvas {
+    width: 100%;
+    max-width: 700px;
+    border-radius: 16px;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 30px rgba(0,245,255,0.2);
+}
+
+.instruction {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+#status {
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+/* ===== DASHBOARD ===== */
+.page-title {
+    margin-bottom: 30px;
+}
+
+/* Cards */
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    font-size: 30px;
+    background: rgba(255,255,255,0.08);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.stat-icon.green { color: #00ff9c; }
+.stat-icon.red { color: #ff4d4d; }
+.stat-icon.blue { color: #00cfff; }
+
+/* Bottom layout */
+.dashboard-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+/* Action buttons */
+.action-card button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Info panel */
+.info-card p {
+    margin-top: 10px;
+    color: var(--muted);
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+    width: 120px;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+/* Colors */
+.progress-fill.good {
+    background: #00ff9c;
+}
+
+.progress-fill.mid {
+    background: #ffd166;
+}
+
+.progress-fill.low {
+    background: #ff4d4d;
 }

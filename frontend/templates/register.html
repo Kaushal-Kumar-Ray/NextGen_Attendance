@@ -1,29 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Register Student</h1>
+<h1 style="text-align:center;">Register Student</h1>
 
-<form id="register-form">
-    <label>Student ID</label><br>
-    <input type="text" id="student_id" required><br><br>
+<div class="register-wrapper">
 
-    <label>Student Name</label><br>
-    <input type="text" id="student_name" required><br><br>
+    <!-- FORM -->
+    <div class="card register-card">
+        <h2>Student Details</h2>
 
-    <button type="button" onclick="startCapture()">Start Face Capture</button>
-</form>
+        <input type="text" id="student_id" placeholder="Student ID" required>
+        <input type="text" id="student_name" placeholder="Student Name" required>
 
-<br>
+        <button onclick="startCapture()">📷 Start Capture</button>
+    </div>
 
-<canvas id="canvas" width="400" height="300" style="border:2px solid #333;"></canvas>
-<p><strong>Instruction:</strong> Look straight at the camera until capture completes.</p>
+    <!-- CAMERA -->
+    <div class="camera-section">
+        <canvas id="canvas"></canvas>
 
+        <p class="instruction">
+            Look straight at the camera until capture completes.
+        </p>
 
-<p id="status"></p>
-<button id="trainBtn" style="display:none;" onclick="trainModel()">
-    💾 Save & Train Model
-</button>
+        <p id="status"></p>
 
+        <button id="trainBtn" style="display:none;" onclick="trainModel()">
+            💾 Train Model
+        </button>
+    </div>
+
+</div>
 
 <script src="/static/js/register.js"></script>
 

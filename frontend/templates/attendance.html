@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Mark Attendance</h1>
-<p>Look at the camera. Attendance will be marked automatically.</p>
+<h1 style="text-align:center;">Live Attendance</h1>
 
-<canvas id="canvas" style="border:2px solid #333;"></canvas>
-<p id="status"></p>
+<div class="camera-wrapper">
+    <canvas id="canvas"></canvas>
+</div>
+
+<p id="status" style="text-align:center; margin-top:10px;"></p>
 
 <script src="/static/js/attendance.js"></script>
 
