@@ -9,6 +9,14 @@ import time
 import gc
 import cloudinary.uploader
 from config.cloudinary_config import *
+# 🔥 PRELOAD MODEL (VERY IMPORTANT FOR RENDER)
+print("[INFO] Loading ArcFace model...")
+try:
+    DeepFace.build_model("ArcFace")
+    print("[SUCCESS] ArcFace model loaded!")
+except Exception as e:
+    print("[ERROR] Model load failed:", e)
+
 
 # 🔥 Reduce TensorFlow logs
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"

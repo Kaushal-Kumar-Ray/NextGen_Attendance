@@ -1,5 +1,8 @@
 from flask import Flask
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -18,6 +21,4 @@ app.register_blueprint(student_bp)
 app.register_blueprint(attendance_bp)
 
 if __name__ == "__main__":
-    app.run(port=3000, debug=True)
-
-    
+    app.run(host="0.0.0.0", port=10000)
