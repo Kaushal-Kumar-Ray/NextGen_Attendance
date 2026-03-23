@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, send_file
 from services.db_service import load_students, load_attendance
 from datetime import datetime
 import os
+from datetime import date
 
 main_bp = Blueprint("main", __name__)
 
@@ -39,9 +40,12 @@ def attendance_page():
     return render_template("attendance.html")
 
 @main_bp.route("/students")
+
 def students_page():
     students = load_students()
     attendance = load_attendance()
+
+    today = str(date.today())
 
     # Total unique days
     total_days = len(set([a["date"] for a in attendance]))
@@ -49,16 +53,22 @@ def students_page():
     enriched = []
 
     for s in students:
-        present_days = len([a for a in attendance if a["id"] == s["id"]])
+        student_records = [a for a in attendance if a["id"] == s["id"]]
 
+        present_days = len(student_records)
+
+        # percentage
         percentage = 0
         if total_days > 0:
             percentage = round((present_days / total_days) * 100, 2)
 
+        # ✅ FIX: check TODAY only
+        is_present_today = any(a["date"] == today for a in student_records)
+
         enriched.append({
             "id": s["id"],
             "name": s["name"],
-            "present": present_days > 0,
+            "present": is_present_today,
             "percentage": percentage,
             "image_url": s.get("image_url")
         })
