@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcFace · Disguised Face Recognition · Interactive Explainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #050810;
+  --surface: #0c1120;
+  --surface2: #111827;
+  --surface3: #1a2233;
+  --border: rgba(99,179,237,0.12);
+  --border2: rgba(147,112,219,0.15);
+  --cyan: #00d9ff;
+  --cyan2: #38bdf8;
+  --purple: #a855f7;
+  --purple2: #7c3aed;
+  --pink: #f472b6;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --glow-cyan: 0 0 20px rgba(0,217,255,0.4);
+  --glow-purple: 0 0 20px rgba(168,85,247,0.4);
+  --sidebar-w: 260px;
+  --radius: 12px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* GRID NOISE TEXTURE */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(0,217,255,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(168,85,247,0.04) 0%, transparent 60%),
+    linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  pointer-events:none; z-index:0;
+}
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: rgba(8,12,24,0.95);
+  border-right: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(0,217,255,0.2); border-radius:4px; }
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .logo-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 6px;
+}
+.sidebar-logo h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.3;
+}
+
+.nav-section {
+  padding: 16px 12px 8px;
+}
+.nav-section-label {
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-family: 'Space Mono', monospace;
+  padding: 0 8px;
+  margin-bottom: 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  position: relative;
+  margin-bottom: 2px;
+}
+.nav-item .nav-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  width: 18px;
+  flex-shrink: 0;
+}
+.nav-item:hover {
+  background: rgba(0,217,255,0.05);
+  border-color: rgba(0,217,255,0.1);
+  color: var(--cyan);
+}
+.nav-item.active {
+  background: rgba(0,217,255,0.08);
+  border-color: rgba(0,217,255,0.2);
+  color: var(--cyan);
+}
+.nav-item.active::before {
+  content:'';
+  position:absolute; left:-12px; top:50%;
+  transform: translateY(-50%);
+  width: 3px; height: 20px;
+  background: var(--cyan);
+  border-radius: 0 3px 3px 0;
+  box-shadow: var(--glow-cyan);
+}
+
+/* MAIN CONTENT */
+.main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.section {
+  display: none;
+  padding: 48px 48px 80px;
+  max-width: 1100px;
+  animation: fadeSlideIn 0.4s ease;
+}
+.section.active { display: block; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* SECTION HEADER */
+.section-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.8;
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.6));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.section-title span {
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.section-desc {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text2);
+  max-width: 720px;
+  margin-bottom: 40px;
+}
+
+/* CARDS */
+.card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  border-color: rgba(0,217,255,0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), var(--glow-cyan);
+}
+.card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.card:hover::before { opacity: 1; }
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.card-body {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text2);
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* INFO BOX */
+.info-box {
+  background: rgba(0,217,255,0.05);
+  border: 1px solid rgba(0,217,255,0.2);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+.info-box .ib-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* FORMULA BLOCK */
+.formula {
+  background: #080c18;
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--purple);
+  margin: 16px 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* BADGE */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Space Mono', monospace;
+}
+.badge-cyan { background: rgba(0,217,255,0.1); color: var(--cyan); border:1px solid rgba(0,217,255,0.3); }
+.badge-purple { background: rgba(168,85,247,0.1); color: var(--purple); border:1px solid rgba(168,85,247,0.3); }
+.badge-green { background: rgba(52,211,153,0.1); color: var(--green); border:1px solid rgba(52,211,153,0.3); }
+.badge-amber { background: rgba(251,191,36,0.1); color: var(--amber); border:1px solid rgba(251,191,36,0.3); }
+
+/* DIVIDER */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 32px 0;
+}
+
+/* HIGHLIGHT TEXT */
+.hl-cyan { color: var(--cyan); }
+.hl-purple { color: var(--purple); }
+.hl-green { color: var(--green); }
+.hl-amber { color: var(--amber); }
+
+/* PIPELINE FLOW */
+.pipeline-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 32px 0;
+  overflow-x: auto;
+  padding: 24px 0;
+}
+.pipe-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  animation: pipeIn 0.5s ease both;
+}
+.pipe-step:nth-child(1) { animation-delay: 0s; }
+.pipe-step:nth-child(3) { animation-delay: 0.15s; }
+.pipe-step:nth-child(5) { animation-delay: 0.3s; }
+.pipe-step:nth-child(7) { animation-delay: 0.45s; }
+.pipe-step:nth-child(9) { animation-delay: 0.6s; }
+.pipe-step:nth-child(11) { animation-delay: 0.75s; }
+.pipe-step:nth-child(13) { animation-delay: 0.9s; }
+@keyframes pipeIn {
+  from { opacity:0; transform:scale(0.8); }
+  to   { opacity:1; transform:scale(1); }
+}
+.pipe-icon {
+  width: 72px; height: 72px;
+  border-radius: 16px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 26px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  position: relative;
+  transition: all 0.3s;
+  cursor: default;
+}
+.pipe-icon:hover {
+  transform: scale(1.08);
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan);
+}
+.pipe-icon.highlight { border-color: var(--cyan); box-shadow: var(--glow-cyan); background: rgba(0,217,255,0.08); }
+.pipe-icon.purple { border-color: var(--purple); box-shadow: var(--glow-purple); background: rgba(168,85,247,0.08); }
+.pipe-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.5px;
+  max-width: 80px;
+}
+.pipe-arrow {
+  color: var(--text3);
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+  animation: arrowPulse 2s infinite;
+}
+@keyframes arrowPulse {
+  0%,100% { opacity:0.4; }
+  50% { opacity:1; color: var(--cyan); }
+}
+
+/* INTERACTIVE SLIDER */
+.slider-container {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin: 24px 0;
+}
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.slider-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+.slider-value {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--cyan);
+}
+input[type=range] {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface3);
+  outline: none;
+  margin-bottom: 10px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--cyan);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0,217,255,0.5);
+  transition: box-shadow 0.2s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 18px rgba(0,217,255,0.8);
+}
+
+/* PROGRESS BARS */
+.progress-row {
+  margin-bottom: 18px;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.progress-label { color: var(--text2); font-weight: 500; }
+.progress-val { font-family: 'Space Mono', monospace; color: var(--cyan); font-size: 12px; }
+.progress-track {
+  height: 8px;
+  background: var(--surface3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.progress-fill::after {
+  content:'';
+  position:absolute; right:0; top:50%;
+  transform: translateY(-50%);
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0,217,255,0.8);
+}
+
+/* TOGGLE */
+.toggle-wrapper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px;
+  width: fit-content;
+}
+.toggle-btn {
+  padding: 8px 20px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.toggle-btn.active {
+  background: var(--cyan);
+  color: #000;
+  font-weight: 700;
+  box-shadow: 0 0 16px rgba(0,217,255,0.4);
+}
+
+/* DATA TABLE */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  background: var(--surface3);
+  padding: 12px 16px;
+  text-align: left;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.data-table tr:hover td { background: rgba(0,217,255,0.03); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table .best { color: var(--green); font-weight: 700; }
+.table-wrap {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+/* COSINE VISUALIZATION */
+.cosine-viz {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+/* LOSS CARDS */
+.loss-tab-content { display: none; }
+.loss-tab-content.active { display: block; animation: fadeSlideIn 0.3s ease; }
+
+/* STAT BIG */
+.stat-big {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 4px;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 1px;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+.stat-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.stat-card:hover {
+  border-color: rgba(0,217,255,0.3);
+  box-shadow: var(--glow-cyan);
+}
+
+/* SAMPLING PROB BARS */
+.sample-bar-container { margin: 10px 0; }
+.sample-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.sample-bar-label { width: 120px; color: var(--text2); font-family: 'Space Mono', monospace; font-size: 11px; }
+.sample-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--surface3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.sample-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 1.5s cubic-bezier(0.4,0,0.2,1);
+}
+.sample-bar-fill.correct { background: var(--green); }
+.sample-bar-fill.incorrect { background: var(--pink); }
+.sample-pct { width: 40px; text-align: right; font-family: 'Space Mono', monospace; font-size: 11px; }
+
+/* INTRA INTER DEMO */
+.ii-demo {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin: 20px 0;
+}
+.threshold-line {
+  position: relative;
+  height: 60px;
+  margin: 20px 0;
+}
+
+/* CHALLENGE TABLE */
+.challenge-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+.challenge-card:hover { border-color: var(--cyan); }
+.challenge-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  width: 48px; height: 48px;
+  display: flex; align-items:center; justify-content:center;
+  background: rgba(0,217,255,0.08);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+/* CANVAS CHARTS */
+.chart-wrap {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 20px 0;
+  position: relative;
+}
+.chart-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+/* GAP ITEM */
+.gap-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.gap-item:last-child { border-bottom: none; }
+.gap-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  width: 24px;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.gap-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.gap-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* MOBILE TOGGLE */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 200;
+  background: var(--cyan);
+  color: #000;
+  border: none;
+  border-radius: 50%;
+  width: 48px; height: 48px;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--glow-cyan);
+}
+@media (max-width: 800px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .section { padding: 24px 20px 60px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .mobile-toggle { display: flex; align-items:center; justify-content:center; }
+  .pipeline-container { flex-direction: column; }
+  .pipe-arrow { transform: rotate(90deg); }
+}
+
+/* FINAL DASHBOARD */
+.final-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.final-card::after {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(circle at 50% 0%, rgba(0,217,255,0.08), transparent 70%);
+  pointer-events: none;
+}
+.final-card:hover {
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-4px);
+}
+.final-card.purple-card:hover {
+  border-color: var(--purple);
+  box-shadow: var(--glow-purple);
+}
+.final-card.purple-card::after {
+  background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.08), transparent 70%);
+}
+.final-card .fc-icon { font-size: 32px; margin-bottom: 14px; }
+.final-card .fc-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.final-card .fc-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.final-card .fc-desc {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+
+/* RETINAFACE DIAGRAM */
+.rf-diagram {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+.rf-box {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.rf-box .rf-icon { font-size: 28px; margin-bottom: 8px; }
+.rf-box .rf-title { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.rf-box .rf-desc { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+/* SCORE DISTRIBUTION CANVAS */
+#scoreCanvas { display:block; width:100%; }
+
+/* SECTION 15 Final summary border top glow */
+.glow-top {
+  position: relative;
+}
+.glow-top::before {
+  content:'';
+  position:absolute; top:-1px; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--purple), transparent);
+  border-radius: var(--radius);
+}
+
+/* Watermark */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-footer p {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'Space Mono', monospace;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-tag">Research Explainer</div>
+    <h2>ArcFace · Disguised Face Recognition</h2>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Foundation</div>
+    <div class="nav-item active" onclick="showSection(1)"><span class="nav-num">01</span>Introduction</div>
+    <div class="nav-item" onclick="showSection(2)"><span class="nav-num">02</span>Problem Statement</div>
+    <div class="nav-item" onclick="showSection(3)"><span class="nav-num">03</span>Face Recog Basics</div>
+    <div class="nav-item" onclick="showSection(4)"><span class="nav-num">04</span>Disguise Challenges</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">System</div>
+    <div class="nav-item" onclick="showSection(5)"><span class="nav-num">05</span>System Pipeline</div>
+    <div class="nav-item" onclick="showSection(6)"><span class="nav-num">06</span>RetinaFace</div>
+    <div class="nav-item" onclick="showSection(7)"><span class="nav-num">07</span>ArcFace Embedding</div>
+    <div class="nav-item" onclick="showSection(8)"><span class="nav-num">08</span>Loss Functions</div>
+    <div class="nav-item" onclick="showSection(9)"><span class="nav-num">09</span>Intra + Inter Loss</div>
+    <div class="nav-item" onclick="showSection(10)"><span class="nav-num">10</span>Sampling Strategy</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Results</div>
+    <div class="nav-item" onclick="showSection(11)"><span class="nav-num">11</span>Training & Datasets</div>
+    <div class="nav-item" onclick="showSection(12)"><span class="nav-num">12</span>Experiments</div>
+    <div class="nav-item" onclick="showSection(13)"><span class="nav-num">13</span>DFW2019 Challenge</div>
+    <div class="nav-item" onclick="showSection(14)"><span class="nav-num">14</span>Performance Metrics</div>
+    <div class="nav-item" onclick="showSection(15)"><span class="nav-num">15</span>Research Gaps</div>
+    <div class="nav-item" onclick="showSection(16)"><span class="nav-num">16</span>Final Dashboard</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <p>Deng &amp; Zafeiriou<br>Imperial College &amp; FaceSoft<br>DFW2019 Challenge</p>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 1: INTRODUCTION -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section active" id="s1">
+  <div class="section-eyebrow">§ 01 · Introduction</div>
+  <h1 class="section-title">ArcFace for <span>Disguised</span><br>Face Recognition</h1>
+  <p class="section-desc">Deep face recognition has achieved remarkable results on standard benchmarks, but disguised faces remain a frontier challenge. This report presents the technical details of the DFW2019 challenge submission by Jiankang Deng and Stefanos Zafeiriou.</p>
+
+  <div class="info-box">
+    <div class="ib-label">📄 Paper Info</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px;">
+      <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px;">AUTHORS</div><div style="font-size:13px;color:#fff">Jiankang Deng, Stefanos Zafeiriou</div></div>
+      <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px;">INSTITUTION</div><div style="font-size:13px;color:#fff">Imperial College &amp; FaceSoft, UK</div></div>
+      <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px;">CHALLENGE</div><div style="font-size:13px;color:#fff">DFW2019 — Disguised Faces in the Wild</div></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:10px;">🎭</div>
+      <div class="card-title">The Core Problem</div>
+      <div class="card-body">Standard face recognition systems learn compact <span class="hl-cyan">intra-class</span> embeddings and wide <span class="hl-purple">inter-class</span> separation. Disguised faces violate both assumptions simultaneously.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:10px;">🧠</div>
+      <div class="card-title">The Solution</div>
+      <div class="card-body">Combining <span class="hl-cyan">RetinaFace</span> for detection + alignment with <span class="hl-purple">ArcFace</span> for embedding, augmented by novel intra-loss and inter-loss for disguise-robust features.</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-big">86.5%</div>
+      <div class="stat-label">GAR @ 1e-4 FAR</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-big">93.6%</div>
+      <div class="stat-label">Overall Protocol-4</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-big">85K</div>
+      <div class="stat-label">Training Identities</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-big">9.6M</div>
+      <div class="stat-label">Training Images</div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;">
+    <div class="section-eyebrow">Key Insight from Figure 1</div>
+    <div class="card" style="background:rgba(0,217,255,0.03);">
+      <div class="card-body" style="font-size:14px;line-height:1.8;">
+        The cosine similarity matrix predicted by ArcFace reveals the core challenge: <br>
+        <span style="display:block;margin:10px 0;padding:12px 16px;background:var(--surface3);border-radius:8px;border-left:3px solid var(--cyan);">
+          <strong class="hl-cyan">Negative pairs (impersonators)</strong> → similarity score should NOT be too high<br>
+          <strong class="hl-purple">Positive pairs (same person + disguise)</strong> → similarity score should NOT be too low
+        </span>
+        The danger zone is the interval <strong class="hl-amber">[0.3, 0.4]</strong> — where confusion between genuine and imposter pairs occurs most frequently.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 2: PROBLEM STATEMENT -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-eyebrow">§ 02 · Problem Statement</div>
+  <h1 class="section-title">Two Types of <span>Disguise</span></h1>
+  <p class="section-desc">Disguised face recognition encompasses two fundamentally different challenges, each attacking a different property of the feature space.</p>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card" style="border-color:rgba(0,217,255,0.25);">
+      <div class="badge badge-cyan" style="margin-bottom:14px;">OBFUSCATION</div>
+      <div class="card-title" style="font-size:18px;">🕶️ Identity Hiding</div>
+      <div class="card-body">A person <strong style="color:#fff">intentionally hides</strong> their own identity using external accessories:
+        <ul style="margin-top:12px;padding-left:18px;display:flex;flex-direction:column;gap:6px;">
+          <li>Sunglasses / tinted glasses</li>
+          <li>Breathing masks / face masks</li>
+          <li>Heavy cosmetic disguise</li>
+          <li>Aging / plastic surgery effects</li>
+          <li>Heavy make-up</li>
+        </ul>
+        <div style="margin-top:14px;padding:10px 14px;background:rgba(0,217,255,0.08);border-radius:8px;font-size:12px;">
+          <strong class="hl-cyan">Effect on feature space:</strong><br>
+          Creates massive <span class="hl-cyan">intra-class variation</span> — same person looks very different → high intra-class distance.
+        </div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(168,85,247,0.25);">
+      <div class="badge badge-purple" style="margin-bottom:14px;">IMPERSONATION</div>
+      <div class="card-title" style="font-size:18px;">🎭 Identity Stealing</div>
+      <div class="card-body">A person <strong style="color:#fff">intentionally mimics</strong> another person's appearance:
+        <ul style="margin-top:12px;padding-left:18px;display:flex;flex-direction:column;gap:6px;">
+          <li>Professional makeup artistry</li>
+          <li>Facial prosthetics</li>
+          <li>Hair styling + coloring</li>
+          <li>Wigs and accessories</li>
+          <li>Contouring techniques</li>
+        </ul>
+        <div style="margin-top:14px;padding:10px 14px;background:rgba(168,85,247,0.08);border-radius:8px;font-size:12px;">
+          <strong class="hl-purple">Effect on feature space:</strong><br>
+          Creates extreme <span class="hl-purple">inter-class similarity</span> — different people look alike → low inter-class distance.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-title">Why Normal Face Recognition Fails</div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:12px;">
+        <div>
+          <div style="font-weight:600;color:#fff;margin-bottom:8px;">Standard assumption (violated by obfuscation):</div>
+          <div class="formula" style="font-size:11px;white-space:normal;"> d(same_person) &lt;&lt; d(diff_person)
+ intra-distance &lt; inter-distance</div>
+          <div style="font-size:12px;color:var(--text2);">With disguise: intra-distance can exceed inter-distance!</div>
+        </div>
+        <div>
+          <div style="font-weight:600;color:#fff;margin-bottom:8px;">With impersonation:</div>
+          <div class="formula" style="font-size:11px;white-space:normal;"> min(inter_distance) &lt;
+ max(image-to-class distance)
+
+ → Margin-based losses fail!</div>
+          <div style="font-size:12px;color:var(--text2);">The image-to-image comparison wins over image-to-class.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="challenge-card">
+    <div class="challenge-icon">⚠️</div>
+    <div>
+      <div style="font-weight:600;color:#fff;margin-bottom:4px;">The Fundamental Paradox</div>
+      <div style="font-size:13px;color:var(--text2);">Good face recognition needs: <span class="hl-cyan">compact intra-class clusters</span> AND <span class="hl-purple">separated inter-class clusters</span>. Disguised faces attack BOTH simultaneously — obfuscation expands intra-clusters, impersonation collapses inter-cluster gaps.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 3: FACE RECOGNITION BASICS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-eyebrow">§ 03 · Face Recognition Basics</div>
+  <h1 class="section-title">Deep Face <span>Recognition</span><br>Fundamentals</h1>
+  <p class="section-desc">Modern face recognition uses Deep Convolutional Neural Networks (DCNNs) to map face images into a compact feature space where identity can be compared geometrically.</p>
+
+  <div class="grid-3" style="margin-bottom:28px;">
+    <div class="card">
+      <div style="font-size:24px;margin-bottom:10px;">📸</div>
+      <div class="card-title">Input Normalization</div>
+      <div class="card-body">Face detected → 5-point landmarks → affine transformation → aligned 112×112 crop. Pose normalization is critical before embedding.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:24px;margin-bottom:10px;">🔢</div>
+      <div class="card-title">Feature Embedding</div>
+      <div class="card-body">DCNN maps face image to a high-dimensional vector (e.g., 512-d). Similar faces map to nearby vectors; different identities map far apart.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:24px;margin-bottom:10px;">📐</div>
+      <div class="card-title">Cosine Similarity</div>
+      <div class="card-body">Identity comparison uses cosine similarity = cos(θ) between normalized feature vectors. Score ∈ [−1, 1], threshold ≈ 0.3–0.4 for matching.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-title">Evolution of Loss Functions in Face Recognition</div>
+    <div class="card-body">
+      <div style="display:flex;gap:0;margin-top:16px;overflow-x:auto;">
+        <div style="flex:1;min-width:120px;padding:16px;background:rgba(255,255,255,0.03);border-radius:8px 0 0 8px;border:1px solid var(--border);text-align:center;">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">2015</div>
+          <div style="font-weight:700;color:#fff;margin-bottom:4px;">Triplet Loss</div>
+          <div style="font-size:11px;color:var(--text2);">FaceNet<br>Image-to-image</div>
+        </div>
+        <div style="width:1px;background:var(--border);"></div>
+        <div style="flex:1;min-width:120px;padding:16px;background:rgba(255,255,255,0.03);border:1px solid var(--border);text-align:center;">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">2017</div>
+          <div style="font-weight:700;color:var(--purple);margin-bottom:4px;">SphereFace</div>
+          <div style="font-size:11px;color:var(--text2);">Angular margin<br>on softmax</div>
+        </div>
+        <div style="width:1px;background:var(--border);"></div>
+        <div style="flex:1;min-width:120px;padding:16px;background:rgba(255,255,255,0.03);border:1px solid var(--border);text-align:center;">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">2018</div>
+          <div style="font-weight:700;color:var(--purple);margin-bottom:4px;">CosFace</div>
+          <div style="font-size:11px;color:var(--text2);">Cosine margin<br>softmax</div>
+        </div>
+        <div style="width:1px;background:var(--border);"></div>
+        <div style="flex:1;min-width:120px;padding:16px;background:rgba(0,217,255,0.08);border:1px solid var(--cyan);border-radius:0 8px 8px 0;text-align:center;">
+          <div style="font-size:12px;color:var(--cyan);margin-bottom:6px;">2019</div>
+          <div style="font-weight:700;color:var(--cyan);margin-bottom:4px;">ArcFace ⭐</div>
+          <div style="font-size:11px;color:var(--text2);">Additive angular<br>margin penalty</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <div class="ib-label">Core Insight: Image-to-Class vs Image-to-Image</div>
+    <div style="margin-top:8px;font-size:13px;color:var(--text);line-height:1.7;">
+      ArcFace uses <strong class="hl-cyan">image-to-class comparison</strong> — each feature is compared against linear transformation matrix rows (class centres). But for disguised faces, the <strong class="hl-purple">image-to-image comparison</strong> can be more powerful, motivating the intra/inter loss additions.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 4: DISGUISE CHALLENGES -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-eyebrow">§ 04 · Disguise Challenges</div>
+  <h1 class="section-title">What Makes Disguise <span>So Hard</span></h1>
+  <p class="section-desc">The DFW2019 dataset exposes the limits of state-of-the-art systems through extreme intra-class variation and inter-class similarity.</p>
+
+  <div class="challenge-card">
+    <div class="challenge-icon">📏</div>
+    <div>
+      <div style="font-weight:600;color:#fff;margin-bottom:4px;">Extreme Intra-Class Distance</div>
+      <div style="font-size:13px;color:var(--text2);">The <em>largest</em> intra-class distance between samples can exceed the <em>largest</em> image-to-class distance. Same person with bridal makeup vs. normal face can have cosine similarity near 0.3 — same as strangers.</div>
+    </div>
+  </div>
+  <div class="challenge-card">
+    <div class="challenge-icon">🔀</div>
+    <div>
+      <div style="font-weight:600;color:#fff;margin-bottom:4px;">Collapsed Inter-Class Distance</div>
+      <div style="font-size:13px;color:var(--text2);">The <em>smallest</em> inter-class distance can be smaller than the <em>smallest</em> image-to-class distance. Professional impersonators achieve cosine similarities of 0.4–0.5 with their target — well above the threshold.</div>
+    </div>
+  </div>
+  <div class="challenge-card">
+    <div class="challenge-icon">🌍</div>
+    <div>
+      <div style="font-weight:600;color:#fff;margin-bottom:4px;">Environmental Factors</div>
+      <div style="font-size:13px;color:var(--text2);">Camera pose, illumination, blur, and low resolution compound the disguise challenge. The combination of appearance + environment changes makes even human recognition fail on extreme cases.</div>
+    </div>
+  </div>
+  <div class="challenge-card">
+    <div class="challenge-icon">⚖️</div>
+    <div>
+      <div style="font-weight:600;color:#fff;margin-bottom:4px;">Dataset Imbalance</div>
+      <div style="font-size:13px;color:var(--text2);">Protocol-1 (Impersonation): 595 positive pairs vs <strong>24,451</strong> negative pairs. Protocol-2 (Obfuscation): 13,302 positive pairs vs <strong>9,027,981</strong> negative pairs. The extreme imbalance makes FAR-based metrics critical.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <div class="card-title">Confusion Zone: Cosine Similarity [0.3, 0.4]</div>
+    <div style="margin-top:16px;position:relative;height:80px;">
+      <canvas id="confZoneCanvas" style="width:100%;height:80px;"></canvas>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:8px;">
+      <span>-1.0 (Opposite)</span><span>0.0 (Orthogonal)</span><span>+1.0 (Identical)</span>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;">
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;background:var(--cyan);border-radius:50%;display:inline-block;"></span>Genuine pairs distribution</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;background:var(--pink);border-radius:50%;display:inline-block;"></span>Imposter pairs distribution</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;background:var(--amber);border-radius:2px;display:inline-block;opacity:0.7;"></span>Confusion zone [0.3, 0.4]</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 5: SYSTEM PIPELINE -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-eyebrow">§ 05 · System Pipeline</div>
+  <h1 class="section-title">End-to-End <span>Recognition</span><br>Pipeline</h1>
+  <p class="section-desc">The complete system from raw image to identity decision, combining state-of-the-art detection, alignment, embedding, and loss-driven refinement.</p>
+
+  <div class="pipeline-container">
+    <div class="pipe-step">
+      <div class="pipe-icon">🖼️</div>
+      <div class="pipe-label">Input Image</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon highlight">👁️</div>
+      <div class="pipe-label">RetinaFace Detection</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon">📍</div>
+      <div class="pipe-label">5-Point Landmark</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon">✂️</div>
+      <div class="pipe-label">Face Alignment 112×112</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon purple">🧠</div>
+      <div class="pipe-label">ArcFace ResNet Backbone</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon purple">⚡</div>
+      <div class="pipe-label">512-d Feature Embedding</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon">📐</div>
+      <div class="pipe-label">Cosine Similarity</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon">⚖️</div>
+      <div class="pipe-label">Threshold Decision</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">
+      <div class="pipe-icon" style="border-color:var(--green);background:rgba(52,211,153,0.08);">✅</div>
+      <div class="pipe-label">Identity Match / Reject</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="badge badge-cyan" style="margin-bottom:12px;">MODULE 1</div>
+      <div class="card-title">RetinaFace — Detection & Alignment</div>
+      <div class="card-body">Single-stage detector with multi-task learning. Simultaneously predicts face bounding boxes AND 5 facial landmarks (eye corners, nose tip, mouth corners). Enables precise geometric normalization.</div>
+    </div>
+    <div class="card">
+      <div class="badge badge-purple" style="margin-bottom:12px;">MODULE 2</div>
+      <div class="card-title">ArcFace — Feature Embedding</div>
+      <div class="card-body">ResNet-100 / ResNet-140 backbone trained with additive angular margin loss. Maps aligned face images to a 512-dimensional hypersphere. Ensemble of multiple models for final submission.</div>
+    </div>
+    <div class="card">
+      <div class="badge badge-amber" style="margin-bottom:12px;">ENHANCEMENT</div>
+      <div class="card-title">Intra-Loss — Compact Intra-Class</div>
+      <div class="card-body">Marginal loss targeting same-identity pairs that are too far apart in embedding space. Minimizes intra-class variance on hard disguise cases through image-to-image comparison.</div>
+    </div>
+    <div class="card">
+      <div class="badge badge-green" style="margin-bottom:12px;">ENHANCEMENT</div>
+      <div class="card-title">Inter-Loss — Separated Inter-Class</div>
+      <div class="card-body">Marginal loss targeting impersonator pairs that are too close in embedding space. Maximizes inter-class discrepancy for challenging negative pairs using hard sample mining.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 6: RETINAFACE -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-eyebrow">§ 06 · Detection Module</div>
+  <h1 class="section-title"><span>RetinaFace</span> —<br>Practical Face Detection</h1>
+  <p class="section-desc">RetinaFace is a state-of-the-art single-stage detector that jointly localizes faces AND predicts five facial landmarks for normalization, all in a single forward pass.</p>
+
+  <div class="rf-diagram">
+    <div class="rf-box">
+      <div class="rf-icon">📦</div>
+      <div class="rf-title">Bounding Box</div>
+      <div class="rf-desc">Face localization — predict x, y, width, height of face region with high precision</div>
+    </div>
+    <div class="rf-box" style="border-color:rgba(0,217,255,0.3);">
+      <div class="rf-icon">📍</div>
+      <div class="rf-title">5 Landmarks</div>
+      <div class="rf-desc">Left eye, right eye, nose tip, left mouth corner, right mouth corner — for alignment</div>
+    </div>
+    <div class="rf-box">
+      <div class="rf-icon">🎯</div>
+      <div class="rf-title">Dense Regression</div>
+      <div class="rf-desc">Optional dense 3D shape prediction for extra-precise pose normalization</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-title">Multi-Task Loss Function</div>
+    <div class="formula">L_total = L_cls(face/not-face)
+          + λ₁ · L_box(bounding box regression)
+          + λ₂ · L_pts(5 landmark regression)
+          + λ₃ · L_dense(3D mesh, optional)</div>
+    <div class="card-body">The joint training on multiple supervision signals allows RetinaFace to learn richer facial structure representations, making it robust to partial occlusion — common in disguised faces.</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Face Normalization Process</div>
+      <div class="card-body">
+        <ol style="padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:13px;">
+          <li>Detect face, get 5 landmark coordinates</li>
+          <li>Compute similarity transformation matrix</li>
+          <li>Warp image to canonical 112×112 template</li>
+          <li>Normalize pixel values [-1, 1]</li>
+          <li>Feed to ArcFace backbone</li>
+        </ol>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Why Alignment Matters</div>
+      <div class="card-body">Geometric normalization removes pose variation before embedding. Without alignment, the same face at different poses can produce very different feature vectors — causing unnecessary intra-class distance even before any disguise.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 7: ARCFACE EMBEDDING -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-eyebrow">§ 07 · Embedding Module</div>
+  <h1 class="section-title"><span>ArcFace</span> —<br>Additive Angular Margin</h1>
+  <p class="section-desc">ArcFace adds an angular margin penalty to the softmax loss in the angular space, creating highly discriminative feature embeddings that lie on a hypersphere.</p>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card">
+      <div class="card-title">The Key Idea</div>
+      <div class="card-body">Normalize both features <strong style="color:#fff">f</strong> and weight matrix rows <strong style="color:#fff">W</strong>. The logit becomes <span class="hl-cyan">cos(θ)</span> — the cosine similarity between feature and class centre. Then add angular margin <em>m</em> to the target class angle to push embeddings apart.</div>
+      <div class="formula" style="font-size:12px;white-space:normal;">L = -log[ e^(s·cos(θᵧ + m)) /
+     (e^(s·cos(θᵧ + m)) + Σⱼ≠ᵧ e^(s·cos(θⱼ))) ]</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Architecture</div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--surface3);border-radius:7px;">
+            <span style="font-size:12px;color:var(--text2);">Backbone</span>
+            <span class="badge badge-cyan">ResNet-100 / ResNet-140</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--surface3);border-radius:7px;">
+            <span style="font-size:12px;color:var(--text2);">Output dim</span>
+            <span class="badge badge-purple">512-d embedding</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--surface3);border-radius:7px;">
+            <span style="font-size:12px;color:var(--text2);">Scale factor s</span>
+            <span class="badge badge-amber">64</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--surface3);border-radius:7px;">
+            <span style="font-size:12px;color:var(--text2);">Angular margin m</span>
+            <span class="badge badge-green">0.5 rad</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Slider Section -->
+  <div class="slider-container">
+    <div class="slider-label">
+      <div class="slider-title">🔬 Interactive: Cosine Similarity Visualizer</div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <label style="font-size:12px;color:var(--text2);">Angle θ between embedding and class centre</label>
+        <span class="slider-value" id="angleDisplay">θ = 30°</span>
+      </div>
+      <input type="range" min="0" max="180" value="30" id="angleSlider" oninput="updateCosineSim()">
+    </div>
+    <canvas id="cosineCanvas" height="140" style="width:100%;display:block;border-radius:8px;background:var(--surface3);"></canvas>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;text-align:center;">
+      <div style="padding:12px;background:var(--surface3);border-radius:8px;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">COS(θ)</div>
+        <div id="cosVal" style="font-family:'Space Mono',monospace;font-size:18px;color:var(--cyan);">0.866</div>
+      </div>
+      <div style="padding:12px;background:var(--surface3);border-radius:8px;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">COS(θ + 0.5)</div>
+        <div id="arcVal" style="font-family:'Space Mono',monospace;font-size:18px;color:var(--purple);">0.739</div>
+      </div>
+      <div style="padding:12px;background:var(--surface3);border-radius:8px;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">MATCH?</div>
+        <div id="matchVal" style="font-family:'Space Mono',monospace;font-size:18px;color:var(--green);">YES</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(0,0,0,0.3);border-radius:8px;font-size:12px;color:var(--text2);">
+      Drag the slider to change the angle between a face embedding and its class centre. The margin m=0.5 rad added by ArcFace forces tighter clustering.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 8: LOSS FUNCTIONS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-eyebrow">§ 08 · Loss Functions</div>
+  <h1 class="section-title">The Evolution of <span>Loss Functions</span><br>in Face Recognition</h1>
+  <p class="section-desc">From basic softmax to ArcFace — understanding how margin-based losses revolutionized face recognition embeddings.</p>
+
+  <div class="toggle-wrapper" id="lossTabs">
+    <button class="toggle-btn active" onclick="showLoss(0)">Softmax</button>
+    <button class="toggle-btn" onclick="showLoss(1)">Triplet Loss</button>
+    <button class="toggle-btn" onclick="showLoss(2)">ArcFace Loss</button>
+  </div>
+
+  <div class="loss-tab-content active" id="loss0">
+    <div class="grid-2">
+      <div class="card">
+        <div class="badge badge-amber" style="margin-bottom:12px;">BASELINE</div>
+        <div class="card-title">Softmax Loss</div>
+        <div class="formula" style="font-size:12px;white-space:normal;">L = -log[ e^(Wᵧᵀ·f + bᵧ) /
+     Σⱼ e^(Wⱼᵀ·f + bⱼ) ]</div>
+        <div class="card-body">Standard cross-entropy loss. Learns to classify identities but doesn't explicitly enforce intra-class compactness or inter-class margin. Works well for closed-set recognition but fails on open-set verification.</div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Softmax Feature Space (Conceptual)</div>
+        <canvas id="softmaxChart" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="loss-tab-content" id="loss1">
+    <div class="grid-2">
+      <div class="card">
+        <div class="badge badge-purple" style="margin-bottom:12px;">FACENET 2015</div>
+        <div class="card-title">Triplet Loss</div>
+        <div class="formula" style="font-size:12px;white-space:normal;">L = Σ [d(a,p) - d(a,n) + margin]₊
+
+Where:
+  a = anchor, p = positive (same id)
+  n = negative (different id)
+  d = Euclidean distance</div>
+        <div class="card-body">
+          <strong style="color:#fff;">Advantages:</strong> Directly optimizes the right objective — minimize intra-class, maximize inter-class distances.<br><br>
+          <strong style="color:#fff;">Problems:</strong><br>
+          1. Combinatorial explosion in triplets<br>
+          2. Semi-hard mining is tricky<br>
+          3. Slow convergence on large datasets
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Triplet Loss Geometry</div>
+        <canvas id="tripletChart" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="loss-tab-content" id="loss2">
+    <div class="grid-2">
+      <div class="card">
+        <div class="badge badge-cyan" style="margin-bottom:12px;">STATE OF THE ART 2019</div>
+        <div class="card-title">ArcFace Loss</div>
+        <div class="formula" style="font-size:12px;white-space:normal;">L = -log[ e^(s·cos(θᵧ+m)) /
+     e^(s·cos(θᵧ+m)) + Σⱼ≠ᵧ e^(s·cosθⱼ) ]
+
+s = 64, m = 0.5 (additive angular margin)</div>
+        <div class="card-body">
+          <strong style="color:#fff;">Key innovations over Triplet:</strong><br>
+          ✓ Image-to-class comparison (stable)<br>
+          ✓ Margin in angular space (geometric clarity)<br>
+          ✓ Batch-level optimization (no triplet mining)<br>
+          ✓ Clear geometric interpretation<br>
+          ✓ SOTA on all standard benchmarks
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">ArcFace Angular Margin (θ space)</div>
+        <canvas id="arcfaceChart" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card">
+    <div class="card-title">Comparison: From Triplet to ArcFace</div>
+    <div class="table-wrap" style="margin-top:16px;background:transparent;border:none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Triplet Loss</th>
+            <th>CosFace</th>
+            <th>ArcFace</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Comparison type</td><td>image-to-image</td><td>image-to-class</td><td>image-to-class</td></tr>
+          <tr><td>Margin type</td><td>Euclidean</td><td>Cosine (additive)</td><td>Angular (additive)</td></tr>
+          <tr><td>Training stability</td><td style="color:var(--pink);">Hard (mining)</td><td style="color:var(--green);">Stable</td><td class="best">Most stable</td></tr>
+          <tr><td>Geometric clarity</td><td style="color:var(--text3);">Low</td><td style="color:var(--amber);">Medium</td><td class="best">High (hypersphere)</td></tr>
+          <tr><td>DFW2019 GAR@1e-4</td><td style="color:var(--text3);">~65%</td><td style="color:var(--amber);">~79%</td><td class="best">83.33%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 9: INTRA + INTER LOSS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s9">
+  <div class="section-eyebrow">§ 09 · Key Innovation</div>
+  <h1 class="section-title">Intra-Loss &amp; <span>Inter-Loss</span><br>for Disguise Robustness</h1>
+  <p class="section-desc">Going beyond ArcFace: marginal losses applied directly on the hardest face pairs to specifically target the disguise recognition failure modes.</p>
+
+  <div class="ii-demo">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;">Interactive Demo: Similarity Threshold</div>
+
+    <div class="toggle-wrapper" id="iiTabs" style="margin-bottom:20px;">
+      <button class="toggle-btn active" onclick="showII('intra')">Intra-Loss (Same Person)</button>
+      <button class="toggle-btn" onclick="showII('inter')">Inter-Loss (Different Person)</button>
+    </div>
+
+    <div id="ii-intra">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">
+        <strong style="color:#fff;">Intra-Loss:</strong> Targets <span class="hl-cyan">positive pairs (same identity)</span> where the cosine similarity is below the threshold — i.e., disguise has created too large an intra-class distance. The loss pushes these embeddings closer together.
+      </div>
+      <div class="formula" style="font-size:12px;white-space:normal;">L_intra = Σ max(0, threshold - cos(f_i, f_j))
+         for (i,j) same identity pairs
+         where cos(f_i, f_j) &lt; threshold</div>
+      <div style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
+          <span style="color:var(--text2);">Adjust similarity threshold</span>
+          <span id="intraThreshDisplay" style="font-family:'Space Mono',monospace;color:var(--cyan);">τ = 0.30</span>
+        </div>
+        <input type="range" min="10" max="60" value="30" id="intraThreshSlider" oninput="updateIntraDemo()">
+      </div>
+      <div style="margin-top:20px;" id="intraDemoViz">
+        <div class="sample-bar-container" id="intraBars"></div>
+      </div>
+      <div id="intraResult" style="margin-top:12px;padding:12px 16px;background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.2);border-radius:8px;font-size:12px;color:var(--text2);"></div>
+    </div>
+
+    <div id="ii-inter" style="display:none;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">
+        <strong style="color:#fff;">Inter-Loss:</strong> Targets <span class="hl-purple">negative pairs (different identity)</span> where the cosine similarity is above the threshold — i.e., impersonation has made embeddings too similar. The loss pushes these embeddings further apart.
+      </div>
+      <div class="formula" style="font-size:12px;white-space:normal;">L_inter = Σ max(0, cos(f_i, f_j) - threshold)
+         for (i,j) different identity pairs
+         where cos(f_i, f_j) &gt; threshold</div>
+      <div style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
+          <span style="color:var(--text2);">Adjust similarity threshold</span>
+          <span id="interThreshDisplay" style="font-family:'Space Mono',monospace;color:var(--purple);">τ = 0.30</span>
+        </div>
+        <input type="range" min="10" max="60" value="30" id="interThreshSlider" oninput="updateInterDemo()">
+      </div>
+      <div style="margin-top:20px;">
+        <div class="sample-bar-container" id="interBars"></div>
+      </div>
+      <div id="interResult" style="margin-top:12px;padding:12px 16px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:8px;font-size:12px;color:var(--text2);"></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Effect on Protocol-3 (Overall)</div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="color:var(--text2);">ArcFace baseline</span><span style="font-family:'Space Mono',monospace;color:var(--cyan);">83.33%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:83.33%;background:linear-gradient(90deg, var(--text3), var(--cyan));"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="color:var(--text2);">ArcFace + Intra</span><span style="font-family:'Space Mono',monospace;color:var(--cyan);">85.94%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:85.94%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="color:var(--text2);">ArcFace + Inter</span><span style="font-family:'Space Mono',monospace;color:var(--cyan);">84.52%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:84.52%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="color:var(--text2);">ArcFace + Intra & Inter</span><span style="font-family:'Space Mono',color:var(--green);">86.54% ⭐</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:86.54%;background:linear-gradient(90deg, var(--cyan), var(--green));"></div></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:10px;">GAR @ 1e-4 FAR on DFW2019 validation — Protocol 3 (Overall)</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Tradeoff: Intra vs Impersonation</div>
+      <div class="card-body">
+        <div style="padding:12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:8px;margin-bottom:12px;">
+          <strong class="hl-amber">⚠️ Key Finding:</strong> Intra-loss improves overall and obfuscation, but <em>decreases</em> impersonation performance. Compressing intra-variance can have side effects on inter-class discrepancy.
+        </div>
+        <div style="font-size:13px;color:var(--text2);">
+          The inter-loss mitigates this tradeoff by explicitly pushing impersonators apart. The combination achieves the best overall result.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 10: SAMPLING STRATEGY -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s10">
+  <div class="section-eyebrow">§ 10 · Training Strategy</div>
+  <h1 class="section-title">Adaptive <span>Sampling</span><br>Probability</h1>
+  <p class="section-desc">When ArcFace converges, ~90% of samples are correctly classified and contribute little to training. Adaptive sampling focuses learning on hard cases.</p>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card">
+      <div class="card-title">The Problem with Fixed Sampling</div>
+      <div class="card-body">After convergence, most samples are "easy" — already correctly classified with high confidence. Training on these wastes compute and can cause over-fitting to noise. The gradient signal is dominated by already-solved examples.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Adaptive Probability Update Rule</div>
+      <div class="formula" style="font-size:11px;white-space:normal;">If correctly classified this iteration:
+  P(sample) = P(sample) × decay
+
+If incorrectly classified:
+  P(sample) = P(sample) × boost
+
+If cos(f, centre) &lt; τ (noisy):
+  P(sample) = P_min (prevent overfit)</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-title">🎮 Sampling Probability Simulation</div>
+    <div style="margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:12px;color:var(--text2);">Training iteration progress</span>
+        <span id="iterDisplay" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);">Iteration: 0</span>
+      </div>
+      <input type="range" min="0" max="100" value="0" id="iterSlider" oninput="updateSampling()">
+    </div>
+
+    <div style="margin-top:20px;" id="samplingBars">
+      <div class="sample-bar-container" id="sampleContainer"></div>
+    </div>
+
+    <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="padding:12px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:8px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">EASY SAMPLES</div>
+        <div id="easyStat" style="font-family:'Space Mono',monospace;font-size:16px;color:var(--green);">90%</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">Probability ↓ (ignore)</div>
+      </div>
+      <div style="padding:12px;background:rgba(244,114,182,0.08);border:1px solid rgba(244,114,182,0.2);border-radius:8px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">HARD SAMPLES</div>
+        <div id="hardStat" style="font-family:'Space Mono',monospace;font-size:16px;color:var(--pink);">10%</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">Probability ↑ (focus)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <div class="ib-label">Noise Guard</div>
+    <div style="font-size:13px;color:var(--text);margin-top:6px;">
+      To prevent over-fitting on <strong class="hl-amber">noisy labels</strong> (wrongly labeled images that are continuously misclassified), the system sets a minimum sampling probability floor P_min. If a sample keeps getting misclassified but its cosine similarity to its centre is very low, it's likely a noisy label — its probability is drastically reduced.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 11: DATASETS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s11">
+  <div class="section-eyebrow">§ 11 · Training Data</div>
+  <h1 class="section-title">Training <span>Datasets</span> &amp;<br>Model Configurations</h1>
+  <p class="section-desc">The system was trained on multiple large-scale face datasets, with models trained on different subsets and ensembled for the final submission.</p>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Dataset</th><th>Identities</th><th>Images</th><th>Characteristics</th><th>Models Trained</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:#fff">CASIA-WebFace</strong></td><td>10K</td><td>0.5M</td><td>Web-scraped, diverse</td><td>CASIA-Res100</td></tr>
+        <tr><td><strong style="color:#fff">VGGFace2</strong></td><td>9.1K</td><td>3.3M</td><td>High variation per ID</td><td>VGG2-Res100</td></tr>
+        <tr><td><strong style="color:#fff">MS1MV2</strong></td><td>85K</td><td>5.8M</td><td>Large-scale, cleaned</td><td>MS1MV2-Res100</td></tr>
+        <tr><td><strong style="color:#fff">Asian (TrillionPairs)</strong></td><td>94K</td><td>2.83M</td><td>Asian face focused</td><td>Combined</td></tr>
+        <tr><td><strong style="color:#fff" class="hl-cyan">All Combined</strong></td><td><span class="hl-cyan">~198K</span></td><td><span class="hl-cyan">~12.43M</span></td><td>Multi-source ensemble</td><td class="best">All-Res100, Res100FC, Res140</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Verification Accuracy (%) — Protocol 3 @ 1e-4 FAR</div>
+    <canvas id="datasetChart" height="180"></canvas>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Ensemble Strategy: Feature-Level</div>
+      <div class="card-body">
+        <div class="formula" style="font-size:11px;white-space:normal;">feat_final = 0.6 × f_Res140
+               + 0.4 × f_Res100FC
+
+(feat-cb-64: best balance of
+ performance vs efficiency)</div>
+        Higher weight assigned to the stronger model (All-Res140). This ensemble becomes the "ArcFace feature" in all subsequent experiments.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Ensemble Strategy: Score-Level</div>
+      <div class="card-body">
+        <div class="formula" style="font-size:11px;white-space:normal;">score_final = Σᵢ wᵢ × cosine(fᵢ, gᵢ)
+where Σwᵢ = 1
+
+After balancing: feat-cb-64
+outperforms score ensemble.</div>
+        Feature ensemble slightly outperforms score ensemble at most FAR operating points. Both approaches were evaluated exhaustively.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 12: EXPERIMENTS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s12">
+  <div class="section-eyebrow">§ 12 · Experiments</div>
+  <h1 class="section-title">Experimental <span>Results</span> &amp;<br>Analysis</h1>
+  <p class="section-desc">Comprehensive ablation studies comparing datasets, model sizes, ensemble strategies, and loss function variants.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Verification Accuracy vs FAR — Model Comparison (Protocol 3)</div>
+    <canvas id="modelCompChart" height="220"></canvas>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Intra + Inter Loss Ablation — GAR at Different FAR Operating Points</div>
+    <canvas id="ablationChart" height="200"></canvas>
+  </div>
+
+  <div class="table-wrap" style="margin-top:24px;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Table 5: Intra &amp; Inter Loss Impact (Validation, Protocol 3)</div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Method</th><th>1e-5</th><th>1e-4</th><th>1e-3</th><th>1e-2</th><th>1e-1</th></tr></thead>
+      <tbody>
+        <tr><td>ArcFace (R140+R100FC)</td><td>21.16</td><td>83.33</td><td>91.76</td><td>95.11</td><td>97.52</td></tr>
+        <tr><td>ArcFace + Intra</td><td>19.77</td><td>85.94</td><td>92.46</td><td>95.66</td><td>97.86</td></tr>
+        <tr><td>ArcFace + Inter</td><td>23.91</td><td>84.52</td><td>94.70</td><td>97.60</td><td>98.55</td></tr>
+        <tr><td class="best">ArcFace + Intra&amp;Inter</td><td class="best">20.52</td><td class="best">86.54</td><td class="best">94.31</td><td class="best">97.93</td><td class="best">98.76</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 13: DFW2019 CHALLENGE -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s13">
+  <div class="section-eyebrow">§ 13 · Benchmark</div>
+  <h1 class="section-title">DFW2019 <span>Challenge</span><br>Dataset &amp; Protocols</h1>
+  <p class="section-desc">The Disguised Faces in the Wild 2019 benchmark provides the most comprehensive evaluation of disguised face recognition systems.</p>
+
+  <div class="stats-row" style="margin-bottom:24px;">
+    <div class="stat-card"><div class="stat-big">600</div><div class="stat-label">Test Subjects</div></div>
+    <div class="stat-card"><div class="stat-big">3840</div><div class="stat-label">Test Images</div></div>
+    <div class="stat-card"><div class="stat-big">4</div><div class="stat-label">Evaluation Protocols</div></div>
+    <div class="stat-card"><div class="stat-big">9M+</div><div class="stat-label">Negative Pairs (P2)</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card" style="border-color:rgba(0,217,255,0.2);">
+      <div class="badge badge-cyan" style="margin-bottom:12px;">PROTOCOL 1</div>
+      <div class="card-title">Impersonation</div>
+      <div class="card-body">Evaluates ability to distinguish impersonators from genuine users. Positive: normal vs validation same subject. Negative: impersonator vs normal/disguised images. 595 positive, 24,451 negative pairs.<br><br>
+        <span class="hl-cyan">ArcFace: 98.66% GAR @ 1% FAR</span><br>
+        <span style="font-size:12px;color:var(--text3);">vs AEFRL winner: 96.80%</span>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(168,85,247,0.2);">
+      <div class="badge badge-purple" style="margin-bottom:12px;">PROTOCOL 2</div>
+      <div class="card-title">Obfuscation</div>
+      <div class="card-body">Evaluates ability to recognize disguised versions of the same person. 13,302 positive pairs, 9,027,981 negative pairs. No impersonator images used.<br><br>
+        <span class="hl-purple">ArcFace: 95.11% GAR @ 1% FAR</span><br>
+        <span style="font-size:12px;color:var(--text3);">vs MiRA-Face winner: 90.65%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="badge badge-amber" style="margin-bottom:12px;">PROTOCOL 3</div>
+      <div class="card-title">Overall (Validation)</div>
+      <div class="card-body">Combined evaluation including all pair types. ArcFace achieves 83.33% GAR at the challenging 1e-4 FAR operating point.<br><br>
+        <span class="hl-amber">ArcFace+Intra&amp;Inter: 86.54%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="badge badge-green" style="margin-bottom:12px;">PROTOCOL 4</div>
+      <div class="card-title">Overall (Test)</div>
+      <div class="card-body">Full test evaluation combining disguises + impersonation. ArcFace+Intra&amp;Inter achieves best overall result.<br><br>
+        <span class="hl-green">ArcFace+Intra&amp;Inter: 93.64% @ 1e-4</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Test Dataset Composition</div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Category</th><th>Subjects</th><th>Images</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Bridal</td><td>100</td><td>200</td><td>Heavy bridal makeup disguise</td></tr>
+        <tr><td>Plastic Surgery</td><td>250</td><td>500</td><td>Before/after surgical changes</td></tr>
+        <tr><td>Other</td><td>250</td><td>3140</td><td>Mixed disguise types, impersonators</td></tr>
+        <tr><td class="best">Total</td><td class="best">600</td><td class="best">3840</td><td>Full DFW2019 test set</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 14: PERFORMANCE METRICS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s14">
+  <div class="section-eyebrow">§ 14 · Performance</div>
+  <h1 class="section-title">Performance <span>Metrics</span> &amp;<br>Benchmark Results</h1>
+  <p class="section-desc">ArcFace significantly outperforms all prior methods across all evaluation protocols, setting new state-of-the-art on the DFW2019 benchmark.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Impersonation Protocol — GAR @ 1% FAR (vs all methods)</div>
+    <canvas id="impChart" height="200"></canvas>
+  </div>
+
+  <div class="chart-wrap" style="margin-top:20px;">
+    <div class="chart-title">Protocol-4 Test: ArcFace + Loss Variants @ Different FAR</div>
+    <canvas id="proto4Chart" height="180"></canvas>
+  </div>
+
+  <div style="margin:28px 0;">
+    <div class="section-eyebrow">Animated Performance Summary</div>
+    <div id="perfBars">
+      <div class="progress-row">
+        <div class="progress-header"><span class="progress-label">ArcFace Baseline — GAR@1%FAR (Impersonation)</span><span class="progress-val">98.66%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="pb1" style="width:0%;background:linear-gradient(90deg,var(--cyan),var(--cyan2));"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-header"><span class="progress-label">ArcFace — GAR@1%FAR (Obfuscation)</span><span class="progress-val">95.11%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="pb2" style="width:0%;background:linear-gradient(90deg,var(--purple),var(--pink));"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-header"><span class="progress-label">ArcFace+Intra&amp;Inter — GAR@1e-4 FAR (Protocol 4)</span><span class="progress-val">93.64%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="pb3" style="width:0%;background:linear-gradient(90deg,var(--green),var(--cyan));"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-header"><span class="progress-label">ArcFace+Intra&amp;Inter — GAR@1e-4 FAR (Overall Val)</span><span class="progress-val">86.54%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="pb4" style="width:0%;"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-header"><span class="progress-label">ArcFace — improvement over AEFRL (Impersonation)</span><span class="progress-val">+1.86%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="pb5" style="width:0%;background:linear-gradient(90deg,var(--amber),var(--pink));"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Official Test Results — Protocol 1–4 Comparison</div>
+    </div>
+    <table class="data-table" style="font-size:12px;">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Impersonation<br>1e-4 / 1e-3</th>
+          <th>Obfuscation<br>1e-4 / 1e-3</th>
+          <th>Plastic Surgery<br>1e-4 / 1e-3</th>
+          <th>Overall<br>1e-4 / 1e-3</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>ResNet-50</td><td>38.4 / 47.6</td><td>16.4 / 35.4</td><td>22.4 / 46.4</td><td>16.9 / 36.0</td></tr>
+        <tr><td>LightCNN-29v2</td><td>51.2 / 74.4</td><td>36.9 / 55.6</td><td>47.2 / 69.2</td><td>36.5 / 55.7</td></tr>
+        <tr><td>ArcFace</td><td>44.8 / 72.4</td><td>91.4 / 95.7</td><td>87.6 / 94.8</td><td>88.6 / 95.2</td></tr>
+        <tr><td>ArcFace + Intra</td><td>17.6 / 56.8</td><td>94.4 / 97.0</td><td>86.4 / 93.6</td><td>92.1 / 96.7</td></tr>
+        <tr><td>ArcFace + Inter</td><td>44.8 / 72.4</td><td>97.9 / 98.7</td><td>95.6 / 98.4</td><td>92.0 / 98.3</td></tr>
+        <tr><td class="best">ArcFace + Intra&amp;Inter</td><td>17.6 / 56.8</td><td class="best">98.4 / 98.9</td><td class="best">95.6 / 98.4</td><td class="best">93.6 / 98.4</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 15: RESEARCH GAPS -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s15">
+  <div class="section-eyebrow">§ 15 · Research Gaps</div>
+  <h1 class="section-title">Open Challenges &amp;<br><span>Research Gaps</span></h1>
+  <p class="section-desc">Despite impressive results, the paper reveals significant open problems that the community must address for robust real-world deployment.</p>
+
+  <div class="card" style="margin-bottom:28px;">
+    <div class="gap-item">
+      <div class="gap-num">01</div>
+      <div>
+        <div class="gap-title">High Intra-Class Variation — Unresolved at Low FAR</div>
+        <div class="gap-desc">Even with intra-loss, GAR at 1e-5 FAR for protocol-3 is only ~20%. Extreme disguises (bridal, plastic surgery) create intra-class distances that current methods cannot bridge. The manifold topology for disguised faces differs fundamentally from normal faces.</div>
+      </div>
+    </div>
+    <div class="gap-item">
+      <div class="gap-num">02</div>
+      <div>
+        <div class="gap-title">Impersonation — The Hardest Problem</div>
+        <div class="gap-desc">Intra-loss actually <em>decreases</em> impersonation performance. The paper acknowledges: "Impersonation is a very challenging problem for current deep face recognition." Neither intra nor inter loss fully solves this — best performance on impersonation is the raw ArcFace baseline.</div>
+      </div>
+    </div>
+    <div class="gap-item">
+      <div class="gap-num">03</div>
+      <div>
+        <div class="gap-title">Intra-Loss Instability on Extreme Appearance Changes</div>
+        <div class="gap-desc">"Exploring challenging positive pairs can be tricky and unstable. Enhancing intra-class compactness on face images with extremely large appearance variations can affect the manifold optimisation." A fundamental theoretical gap remains.</div>
+      </div>
+    </div>
+    <div class="gap-item">
+      <div class="gap-num">04</div>
+      <div>
+        <div class="gap-title">Human-Level Failure Cases Exist</div>
+        <div class="gap-desc">The paper shows failure cases (Figure 5) where even humans cannot distinguish same-person/different-person pairs. This sets an upper bound on what any algorithm can achieve — but also raises questions about dataset labeling quality.</div>
+      </div>
+    </div>
+    <div class="gap-item">
+      <div class="gap-num">05</div>
+      <div>
+        <div class="gap-title">Real-World Robustness — Beyond Lab Conditions</div>
+        <div class="gap-desc">The DFW dataset, while challenging, is curated. Real-world deployment involves simultaneous disguise + environmental degradation + time-gap between gallery and probe. No current system achieves acceptable FAR in these conditions.</div>
+      </div>
+    </div>
+    <div class="gap-item" style="border:none;">
+      <div class="gap-num">06</div>
+      <div>
+        <div class="gap-title">Training Data Bias — No Disguised Training Data</div>
+        <div class="gap-desc">All training datasets (CASIA, VGGFace2, MS1MV2, Asian) contain normal face images. The system generalizes zero-shot to disguised faces. Domain adaptation or synthesized disguise augmentation could be a significant improvement direction.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div style="padding:20px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.2);border-radius:var(--radius);">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--green);margin-bottom:12px;">✅ What Works Well</div>
+      <ul style="font-size:13px;color:var(--text2);padding-left:16px;display:flex;flex-direction:column;gap:6px;">
+        <li>ArcFace baseline far exceeds prior SOTA</li>
+        <li>Inter-loss reliably improves obfuscation</li>
+        <li>Feature ensemble is effective & efficient</li>
+        <li>Multi-dataset training generalizes well</li>
+      </ul>
+    </div>
+    <div style="padding:20px;background:rgba(244,114,182,0.05);border:1px solid rgba(244,114,182,0.2);border-radius:var(--radius);">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--pink);margin-bottom:12px;">❌ What Remains Hard</div>
+      <ul style="font-size:13px;color:var(--text2);padding-left:16px;display:flex;flex-direction:column;gap:6px;">
+        <li>Impersonation with professional makeup</li>
+        <li>Very low FAR operating points (&lt;1e-4)</li>
+        <li>Simultaneous multi-factor disguise</li>
+        <li>Stable intra-loss on extreme variations</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 16: FINAL DASHBOARD -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s16">
+  <div class="section-eyebrow">§ 16 · Summary Dashboard</div>
+  <h1 class="section-title">Final <span>Summary</span> &amp;<br>Key Takeaways</h1>
+  <p class="section-desc">A complete overview of the ArcFace disguised face recognition system — its architecture, performance, and significance.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="final-card glow-top">
+      <div class="fc-icon">🏆</div>
+      <div class="fc-label">Best System</div>
+      <div class="fc-val">ArcFace + Intra &amp; Inter</div>
+      <div class="fc-desc">RetinaFace detection · ResNet-140 · Feature ensemble · Adaptive sampling</div>
+    </div>
+    <div class="final-card purple-card glow-top">
+      <div class="fc-icon">📊</div>
+      <div class="fc-label">Peak Performance</div>
+      <div class="fc-val">98.76% GAR @ 1e-1</div>
+      <div class="fc-desc">93.64% @ 1e-4 FAR on Protocol-4 (Overall Test)</div>
+    </div>
+    <div class="final-card glow-top">
+      <div class="fc-icon">💪</div>
+      <div class="fc-label">Key Strength</div>
+      <div class="fc-val">Robust Embeddings</div>
+      <div class="fc-desc">Angular margin + intra/inter loss creates hyperspherical features resilient to obfuscation</div>
+    </div>
+    <div class="final-card purple-card glow-top">
+      <div class="fc-icon">⚠️</div>
+      <div class="fc-label">Main Weakness</div>
+      <div class="fc-val">Hard Impersonation</div>
+      <div class="fc-desc">Professional impersonators remain the hardest case — intra-loss can worsen this</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap" style="margin-bottom:24px;">
+    <div class="chart-title">System Performance Radar — Key Dimensions</div>
+    <canvas id="radarChart" height="260"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="font-size:18px;">The Four Conclusions from the Paper</div>
+    <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px;">
+      <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--surface3);border-radius:10px;">
+        <div style="font-family:'Space Mono',monospace;font-size:18px;color:var(--cyan);flex-shrink:0;">①</div>
+        <div><strong style="color:#fff">ArcFace is general and excellent</strong> — it enhances intra-class compactness and inter-class discrepancy significantly beyond all prior methods in the standard framework.</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--surface3);border-radius:10px;">
+        <div style="font-family:'Space Mono',monospace;font-size:18px;color:var(--purple);flex-shrink:0;">②</div>
+        <div><strong style="color:#fff">Exploring challenging negative pairs (inter-loss)</strong> is a general and effective approach — it reliably improves obfuscation and overall recognition without hurting other protocols significantly.</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--surface3);border-radius:10px;">
+        <div style="font-family:'Space Mono',monospace;font-size:18px;color:var(--amber);flex-shrink:0;">③</div>
+        <div><strong style="color:#fff">Intra-loss is tricky and unstable</strong> — compressing intra-variance on faces with extreme appearance variations can affect manifold optimization and hurt impersonation performance as a side effect.</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--surface3);border-radius:10px;">
+        <div style="font-family:'Space Mono',monospace;font-size:18px;color:var(--pink);flex-shrink:0;">④</div>
+        <div><strong style="color:#fff">Disguised face recognition remains very challenging</strong> — despite state-of-the-art performance, the problem is far from solved, especially at stringent FAR operating points required for security applications.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;padding:24px;background:linear-gradient(135deg,rgba(0,217,255,0.06),rgba(168,85,247,0.06));border:1px solid rgba(0,217,255,0.2);border-radius:16px;text-align:center;">
+    <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;">
+      From Triplet Loss to ArcFace
+    </div>
+    <div style="font-size:14px;color:var(--text2);max-width:580px;margin:0 auto;line-height:1.7;">
+      A journey from combinatorially complex image-to-image comparison to elegant additive angular margin in a stable softmax framework — achieving state-of-the-art on one of computer vision's hardest open problems.
+    </div>
+  </div>
+</section>
+
+</main>
+
+<button class="mobile-toggle" id="mobileToggle" onclick="toggleSidebar()">☰</button>
+
+<script>
+// ═══════ NAVIGATION ═══════
+let currentSection = 1;
+let chartsInit = {};
+
+function showSection(n) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  document.querySelectorAll('.nav-item')[n-1].classList.add('active');
+  currentSection = n;
+  window.scrollTo(0,0);
+  // Close sidebar on mobile
+  if (window.innerWidth < 800) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+  setTimeout(() => initSectionCharts(n), 100);
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ═══════ CONFUSION ZONE CANVAS ═══════
+function drawConfusionZone() {
+  const c = document.getElementById('confZoneCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  c.width = c.offsetWidth * window.devicePixelRatio;
+  c.height = 80 * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const W = c.offsetWidth, H = 80;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle = '#0c1120';
+  ctx.fillRect(0,0,W,H);
+
+  // Map cosine -1..1 to x 0..W
+  const cx = v => ((v+1)/2)*W;
+
+  // Imposter (negative pairs) distribution - peak around 0.2
+  const drawDist = (mu, sigma, color, alpha) => {
+    ctx.beginPath();
+    ctx.fillStyle = color.replace(')',`,${alpha})`).replace('rgb','rgba');
+    let pts = [];
+    for(let x=0;x<W;x++) {
+      const v = (x/W)*2-1;
+      const y = Math.exp(-((v-mu)**2)/(2*sigma**2));
+      pts.push([x, H - y*(H-12) - 4]);
+    }
+    ctx.moveTo(0,H);
+    pts.forEach(([x,y]) => ctx.lineTo(x,y));
+    ctx.lineTo(W,H);
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  drawDist(0.15, 0.18, 'rgb(244,114,182)', 0.3); // imposters
+  drawDist(0.60, 0.15, 'rgb(0,217,255)', 0.3);    // genuine
+
+  // Confusion zone [0.3,0.4]
+  ctx.fillStyle = 'rgba(251,191,36,0.15)';
+  ctx.fillRect(cx(0.3), 0, cx(0.4)-cx(0.3), H);
+  ctx.strokeStyle = 'rgba(251,191,36,0.5)';
+  ctx.setLineDash([4,4]);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx(0.3),0); ctx.lineTo(cx(0.3),H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx(0.4),0); ctx.lineTo(cx(0.4),H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx(0),0); ctx.lineTo(cx(0),H); ctx.stroke();
+}
+
+// ═══════ COSINE VISUALIZER ═══════
+function updateCosineSim() {
+  const deg = parseInt(document.getElementById('angleSlider').value);
+  const rad = deg * Math.PI / 180;
+  const m = 0.5;
+  const cosV = Math.cos(rad);
+  const arcV = Math.cos(rad + m);
+  const threshold = 0.3;
+
+  document.getElementById('angleDisplay').textContent = `θ = ${deg}°`;
+  document.getElementById('cosVal').textContent = cosV.toFixed(3);
+  document.getElementById('arcVal').textContent = arcV.toFixed(3);
+  
+  const isMatch = cosV > threshold;
+  const matchEl = document.getElementById('matchVal');
+  matchEl.textContent = isMatch ? 'YES' : 'NO';
+  matchEl.style.color = isMatch ? 'var(--green)' : 'var(--pink)';
+
+  drawCosineCanvas(deg);
+}
+
+function drawCosineCanvas(deg) {
+  const c = document.getElementById('cosineCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  c.width = c.offsetWidth * window.devicePixelRatio;
+  c.height = 140 * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const W = c.offsetWidth, H = 140;
+  ctx.clearRect(0,0,W,H);
+
+  const cx = W/2, cy = H/2, r = Math.min(W,H)*0.35;
+  const rad = deg * Math.PI / 180;
+  const m = 0.5;
+
+  // Circle
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Class centre vector (horizontal right)
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+r,cy);
+  ctx.strokeStyle = 'rgba(0,217,255,0.6)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = 'var(--cyan)';
+  ctx.font = '10px Space Mono';
+  ctx.fillText('W (centre)', cx+r-55, cy-6);
+
+  // Feature vector
+  const fx = cx + r*Math.cos(-rad);
+  const fy = cy + r*Math.sin(-rad);
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(fx,fy);
+  ctx.strokeStyle = 'rgba(168,85,247,0.8)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // ArcFace vector (with margin)
+  const ax = cx + r*Math.cos(-(rad+m));
+  const ay = cy + r*Math.sin(-(rad+m));
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(ax,ay);
+  ctx.strokeStyle = 'rgba(168,85,247,0.3)';
+  ctx.setLineDash([4,4]);
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Arc for angle
+  ctx.beginPath();
+  ctx.arc(cx,cy,r*0.3,-rad,0);
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = 'rgba(168,85,247,0.9)';
+  ctx.font = '10px Space Mono';
+  ctx.fillText('f (feature)', fx+5, fy-5);
+
+  // Threshold line
+  const tx = cx + r*Math.cos(Math.acos(0.3));
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(cx + r, cy + r*0);
+  ctx.strokeStyle='transparent';
+  // Draw threshold indicator
+  ctx.fillStyle = 'rgba(251,191,36,0.5)';
+  ctx.beginPath();
+  ctx.arc(cx + r*0.3, cy, 4, 0, Math.PI*2);
+  ctx.fill();
+}
+
+// ═══════ LOSS TABS ═══════
+function showLoss(idx) {
+  document.querySelectorAll('.loss-tab-content').forEach((t,i) => {
+    t.classList.toggle('active', i===idx);
+  });
+  document.querySelectorAll('#lossTabs .toggle-btn').forEach((b,i) => {
+    b.classList.toggle('active', i===idx);
+  });
+  setTimeout(() => {
+    if(idx===0) drawSoftmaxChart();
+    if(idx===1) drawTripletChart();
+    if(idx===2) drawArcfaceChartLoss();
+  },50);
+}
+
+function drawSoftmaxChart() {
+  const c = document.getElementById('softmaxChart');
+  if(!c||chartsInit['softmax']) return;
+  chartsInit['softmax'] = true;
+  new Chart(c, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label:'Class A', data: Array.from({length:20},(_,i)=>({x:Math.random()*3-1.5+(-2),y:Math.random()*3-1.5})), backgroundColor:'rgba(0,217,255,0.6)', pointRadius:5 },
+        { label:'Class B', data: Array.from({length:20},(_,i)=>({x:Math.random()*3-1.5+2,y:Math.random()*3-1.5})), backgroundColor:'rgba(168,85,247,0.6)', pointRadius:5 },
+        { label:'Class C', data: Array.from({length:20},(_,i)=>({x:Math.random()*3-1.5,y:Math.random()*3+1.5})), backgroundColor:'rgba(244,114,182,0.6)', pointRadius:5 },
+      ]
+    },
+    options: { responsive:true, plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}, scales:{x:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}}} }
+  });
+}
+function drawTripletChart() {
+  const c = document.getElementById('tripletChart');
+  if(!c||chartsInit['triplet']) return;
+  chartsInit['triplet'] = true;
+  new Chart(c, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label:'Anchor', data:[{x:0,y:0}], backgroundColor:'rgba(251,191,36,1)', pointRadius:10 },
+        { label:'Positive (same)', data: Array.from({length:15},()=>({x:Math.random()*1.5-0.75,y:Math.random()*1.5-0.75})), backgroundColor:'rgba(0,217,255,0.6)', pointRadius:5 },
+        { label:'Negative (diff)', data: Array.from({length:15},()=>({x:Math.random()*1.5+2,y:Math.random()*2-1})), backgroundColor:'rgba(244,114,182,0.6)', pointRadius:5 },
+      ]
+    },
+    options: { responsive:true, plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}, scales:{x:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}}} }
+  });
+}
+function drawArcfaceChartLoss() {
+  const c = document.getElementById('arcfaceChart');
+  if(!c||chartsInit['arcfaceLoss']) return;
+  chartsInit['arcfaceLoss'] = true;
+  const labels = Array.from({length:36},(_,i)=>i*10);
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'cos(θ) [softmax]', data: labels.map(d=>Math.cos(d*Math.PI/180)), borderColor:'rgba(251,191,36,0.8)', backgroundColor:'transparent', tension:0.4, borderWidth:2 },
+        { label:'cos(θ+0.5) [arcface]', data: labels.map(d=>Math.cos((d*Math.PI/180)+0.5)), borderColor:'rgba(0,217,255,0.8)', backgroundColor:'rgba(0,217,255,0.08)', fill:true, tension:0.4, borderWidth:2 },
+      ]
+    },
+    options: { responsive:true, plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}, scales:{x:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'},title:{display:true,text:'Angle θ (degrees)',color:'#64748b'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'},title:{display:true,text:'Similarity score',color:'#64748b'}}} }
+  });
+}
+
+// ═══════ INTRA INTER DEMO ═══════
+const samplePairs = [
+  {label:'Same person — heavy makeup', sim:0.28, type:'intra'},
+  {label:'Same person — sunglasses', sim:0.35, type:'intra'},
+  {label:'Same person — normal', sim:0.72, type:'intra'},
+  {label:'Same person — aging', sim:0.22, type:'intra'},
+  {label:'Same person — beard', sim:0.55, type:'intra'},
+];
+const negPairs = [
+  {label:'Impersonator A — target B', sim:0.45, type:'inter'},
+  {label:'Impersonator C — target D', sim:0.38, type:'inter'},
+  {label:'Different person (normal)', sim:0.12, type:'inter'},
+  {label:'Impersonator B — target A', sim:0.52, type:'inter'},
+  {label:'Different person (slight)', sim:0.20, type:'inter'},
+];
+
+function showII(mode) {
+  document.getElementById('ii-intra').style.display = mode==='intra'?'block':'none';
+  document.getElementById('ii-inter').style.display = mode==='inter'?'block':'none';
+  document.querySelectorAll('#iiTabs .toggle-btn').forEach((b,i)=>{
+    b.classList.toggle('active', (i===0&&mode==='intra')||(i===1&&mode==='inter'));
+  });
+  if(mode==='intra') updateIntraDemo();
+  else updateInterDemo();
+}
+
+function updateIntraDemo() {
+  const t = parseInt(document.getElementById('intraThreshSlider').value)/100;
+  document.getElementById('intraThreshDisplay').textContent = `τ = ${t.toFixed(2)}`;
+  const container = document.getElementById('intraBars');
+  const activated = samplePairs.filter(p=>p.sim < t);
+  container.innerHTML = samplePairs.map(p=>{
+    const active = p.sim < t;
+    const pct = Math.round(p.sim*100);
+    return `<div class="sample-bar-row">
+      <div class="sample-bar-label" style="color:${active?'var(--cyan)':'var(--text3)'};">${p.label}</div>
+      <div class="sample-bar-track"><div class="sample-bar-fill correct" style="width:${pct}%;background:${active?'var(--pink)':'var(--green)'};"></div></div>
+      <div class="sample-pct" style="color:${active?'var(--pink)':'var(--green)'};">${p.sim.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('intraResult').innerHTML = `<strong style="color:var(--cyan);">${activated.length}</strong> of 5 pairs activate Intra-Loss — similarity below threshold τ=${t.toFixed(2)}. Loss magnitude: <strong style="color:var(--pink);">${activated.map(p=>(t-p.sim).toFixed(2)).join(' + ') || '0'}</strong>`;
+}
+
+function updateInterDemo() {
+  const t = parseInt(document.getElementById('interThreshSlider').value)/100;
+  document.getElementById('interThreshDisplay').textContent = `τ = ${t.toFixed(2)}`;
+  const container = document.getElementById('interBars');
+  const activated = negPairs.filter(p=>p.sim > t);
+  container.innerHTML = negPairs.map(p=>{
+    const active = p.sim > t;
+    const pct = Math.round(p.sim*100);
+    return `<div class="sample-bar-row">
+      <div class="sample-bar-label" style="color:${active?'var(--purple)':'var(--text3)'};">${p.label}</div>
+      <div class="sample-bar-track"><div class="sample-bar-fill" style="width:${pct}%;background:${active?'var(--pink)':'var(--green)'};"></div></div>
+      <div class="sample-pct" style="color:${active?'var(--pink)':'var(--green)'};">${p.sim.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('interResult').innerHTML = `<strong style="color:var(--purple);">${activated.length}</strong> of 5 pairs activate Inter-Loss — similarity above threshold τ=${t.toFixed(2)}. These impersonators are too close! Penalty: <strong style="color:var(--pink);">${activated.map(p=>(p.sim-t).toFixed(2)).join(' + ')||'0'}</strong>`;
+}
+
+// ═══════ SAMPLING SIMULATION ═══════
+function buildSampleBars() {
+  const c = document.getElementById('sampleContainer');
+  const samples = [
+    {label:'Easy (well-classified)', type:'correct'},
+    {label:'Medium (close boundary)', type:'correct'},
+    {label:'Hard (misclassified)', type:'incorrect'},
+    {label:'Hard (impersonator)', type:'incorrect'},
+    {label:'Noisy (label error?)', type:'incorrect'},
+  ];
+  c.innerHTML = samples.map((s,i)=>`<div class="sample-bar-row">
+    <div class="sample-bar-label">${s.label}</div>
+    <div class="sample-bar-track"><div class="sample-bar-fill ${s.type}" id="sbar${i}" style="width:50%;"></div></div>
+    <div class="sample-pct" id="sbarv${i}">50%</div>
+  </div>`).join('');
+  updateSampling();
+}
+
+function updateSampling() {
+  const iter = parseInt(document.getElementById('iterSlider').value);
+  document.getElementById('iterDisplay').textContent = `Iteration: ${iter}%`;
+  // As training progresses, easy samples go down, hard go up
+  const probs = [
+    Math.max(5, 90 - iter*0.85),  // easy
+    Math.max(10, 70 - iter*0.6),  // medium
+    Math.min(95, 10 + iter*0.85), // hard
+    Math.min(90, 15 + iter*0.75), // hard impersonator
+    Math.min(15, 50 - iter*0.35), // noisy (capped by guard)
+  ];
+  probs.forEach((p,i)=>{
+    const fill = document.getElementById('sbar'+i);
+    const val = document.getElementById('sbarv'+i);
+    if(fill&&val) { fill.style.width=p+'%'; val.textContent=Math.round(p)+'%'; }
+  });
+  const easyAvg = Math.round((probs[0]+probs[1])/2);
+  const hardAvg = Math.round((probs[2]+probs[3])/2);
+  document.getElementById('easyStat').textContent = easyAvg+'%';
+  document.getElementById('hardStat').textContent = hardAvg+'%';
+}
+
+// ═══════ CHARTS ═══════
+const chartDefaults = {
+  plugins: { legend: { labels: { color: '#94a3b8', font: {size:11} } } },
+  scales: {
+    x: { ticks:{color:'#64748b'}, grid:{color:'rgba(255,255,255,0.05)'} },
+    y: { ticks:{color:'#64748b'}, grid:{color:'rgba(255,255,255,0.05)'} }
+  }
+};
+
+function initSectionCharts(n) {
+  if(n===4) { setTimeout(drawConfusionZone,100); }
+  if(n===7) { updateCosineSim(); }
+  if(n===8) { drawSoftmaxChart(); }
+  if(n===10) { buildSampleBars(); }
+  if(n===11) { drawDatasetChart(); }
+  if(n===12) { drawModelCompChart(); drawAblationChart(); }
+  if(n===13) { }
+  if(n===14) { drawImpChart(); drawProto4Chart(); animateProgressBars(); }
+  if(n===16) { drawRadarChart(); }
+}
+
+function drawDatasetChart() {
+  if(chartsInit['dataset']) return;
+  chartsInit['dataset'] = true;
+  const c = document.getElementById('datasetChart');
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: ['VGG2-Res100','CASIA-Res100','MS1MV2Asian','MS1MV2-Res100','All-Res100','All-Res100FC','All-Res140'],
+      datasets: [{
+        label: 'GAR @ 1e-4 FAR (%)',
+        data: [59.62, 65.07, 76.23, 79.33, 81.92, 82.54, 82.83],
+        backgroundColor: ['rgba(100,116,139,0.6)','rgba(100,116,139,0.6)','rgba(100,116,139,0.6)','rgba(56,189,248,0.5)','rgba(0,217,255,0.6)','rgba(0,217,255,0.7)','rgba(0,217,255,0.9)'],
+        borderColor: ['#475569','#475569','#475569','#38bdf8','var(--cyan)','var(--cyan)','var(--cyan)'],
+        borderWidth: 1.5, borderRadius: 6,
+      }]
+    },
+    options: { ...chartDefaults, responsive:true, indexAxis:'y', plugins:{legend:{display:false}},
+      scales:{x:{...chartDefaults.scales.x,min:55,max:86},y:{...chartDefaults.scales.y}} }
+  });
+}
+
+function drawModelCompChart() {
+  if(chartsInit['modelComp']) return;
+  chartsInit['modelComp'] = true;
+  const c = document.getElementById('modelCompChart');
+  const FARs = ['1e-5','1e-4','1e-3','1e-2','1e-1'];
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels: FARs,
+      datasets: [
+        { label:'VGG2-Res100', data:[18.61,59.62,80.40,90.57,96.43], borderColor:'rgba(100,116,139,0.6)', backgroundColor:'transparent', tension:0.4, borderWidth:1.5 },
+        { label:'MS1MV2-Res100', data:[20.99,79.33,89.19,93.73,96.91], borderColor:'rgba(56,189,248,0.8)', backgroundColor:'transparent', tension:0.4, borderWidth:2 },
+        { label:'All-Res100', data:[21.44,81.92,90.75,94.72,97.35], borderColor:'rgba(168,85,247,0.8)', backgroundColor:'transparent', tension:0.4, borderWidth:2 },
+        { label:'All-Res140 ⭐', data:[20.95,82.83,91.54,95.04,97.51], borderColor:'rgba(0,217,255,1)', backgroundColor:'rgba(0,217,255,0.06)', fill:true, tension:0.4, borderWidth:2.5 },
+      ]
+    },
+    options: { responsive:true, ...chartDefaults }
+  });
+}
+
+function drawAblationChart() {
+  if(chartsInit['ablation']) return;
+  chartsInit['ablation'] = true;
+  const c = document.getElementById('ablationChart');
+  const FARs = ['1e-5','1e-4','1e-3','1e-2','1e-1'];
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels: FARs,
+      datasets: [
+        { label:'ArcFace (baseline)', data:[21.16,83.33,91.76,95.11,97.52], borderColor:'rgba(100,116,139,0.8)', backgroundColor:'transparent', tension:0.4, borderWidth:2, borderDash:[5,5] },
+        { label:'+ Intra', data:[19.77,85.94,92.46,95.66,97.86], borderColor:'rgba(56,189,248,0.9)', backgroundColor:'transparent', tension:0.4, borderWidth:2 },
+        { label:'+ Inter', data:[23.91,84.52,94.70,97.60,98.55], borderColor:'rgba(168,85,247,0.9)', backgroundColor:'transparent', tension:0.4, borderWidth:2 },
+        { label:'+ Intra&Inter ⭐', data:[20.52,86.54,94.31,97.93,98.76], borderColor:'var(--green)', backgroundColor:'rgba(52,211,153,0.08)', fill:true, tension:0.4, borderWidth:2.5 },
+      ]
+    },
+    options: { responsive:true, ...chartDefaults }
+  });
+}
+
+function drawImpChart() {
+  if(chartsInit['impChart']) return;
+  chartsInit['impChart'] = true;
+  const c = document.getElementById('impChart');
+  const methods = ['VGG-Face','ByteFace','DDRNET','LearnedSiamese','WVU CL','MEDC','DR-GAN','MiRA-Face','OcclusionFace','UMDNets','AEFRL','ArcFace'];
+  const vals = [52.77,75.53,84.20,57.64,81.34,91.26,65.21,95.46,93.44,94.28,96.80,98.66];
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: methods,
+      datasets: [{
+        data: vals,
+        backgroundColor: vals.map(v => v===98.66?'rgba(0,217,255,0.9)':'rgba(100,116,139,0.5)'),
+        borderColor: vals.map(v => v===98.66?'var(--cyan)':'rgba(100,116,139,0.5)'),
+        borderWidth:1.5, borderRadius:4,
+      }]
+    },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{...chartDefaults.scales, y:{...chartDefaults.scales.y, min:40, max:101}} }
+  });
+}
+
+function drawProto4Chart() {
+  if(chartsInit['proto4']) return;
+  chartsInit['proto4'] = true;
+  const c = document.getElementById('proto4Chart');
+  const FARs = ['1e-5','1e-4','1e-3','1e-2','1e-1'];
+  new Chart(c, {
+    type: 'line',
+    data: {
+      labels: FARs,
+      datasets: [
+        { label:'ArcFace', data:[41.36,88.86,95.29,98.03,99.15], borderColor:'rgba(100,116,139,0.7)', backgroundColor:'transparent', tension:0.4, borderWidth:1.5, borderDash:[5,5] },
+        { label:'+Intra', data:[47.76,92.19,96.71,98.37,99.31], borderColor:'rgba(56,189,248,0.9)', backgroundColor:'transparent', tension:0.4, borderWidth:2 },
+        { label:'+Inter', data:[41.36,92.00,98.30,99.14,99.41], borderColor:'rgba(168,85,247,0.9)', backgroundColor:'transparent', tension:0.4, borderWidth:2 },
+        { label:'+Intra&Inter', data:[48.67,93.64,98.45,99.30,99.47], borderColor:'var(--green)', backgroundColor:'rgba(52,211,153,0.07)', fill:true, tension:0.4, borderWidth:2.5 },
+      ]
+    },
+    options: { responsive:true, ...chartDefaults }
+  });
+}
+
+function drawRadarChart() {
+  if(chartsInit['radar']) return;
+  chartsInit['radar'] = true;
+  const c = document.getElementById('radarChart');
+  new Chart(c, {
+    type: 'radar',
+    data: {
+      labels: ['Impersonation', 'Obfuscation', 'Plastic Surgery', 'Overall', 'Training Stability', 'Speed'],
+      datasets: [
+        { label:'ArcFace Baseline', data:[72,88,88,89,90,85], borderColor:'rgba(100,116,139,0.7)', backgroundColor:'rgba(100,116,139,0.1)', borderWidth:1.5, borderDash:[5,5] },
+        { label:'ArcFace + Intra&Inter', data:[57,98,96,94,75,80], borderColor:'rgba(0,217,255,0.9)', backgroundColor:'rgba(0,217,255,0.12)', borderWidth:2.5, pointBackgroundColor:'var(--cyan)' },
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+      scales:{r:{
+        ticks:{color:'#64748b',backdropColor:'transparent',font:{size:9}},
+        grid:{color:'rgba(255,255,255,0.07)'},
+        pointLabels:{color:'#94a3b8',font:{size:11}},
+        suggestedMin:0, suggestedMax:100
+      }}
+    }
+  });
+}
+
+function animateProgressBars() {
+  const bars = [
+    {id:'pb1', w:98.66},
+    {id:'pb2', w:95.11},
+    {id:'pb3', w:93.64},
+    {id:'pb4', w:86.54},
+    {id:'pb5', w:18.6},
+  ];
+  bars.forEach((b,i) => {
+    setTimeout(()=>{
+      const el = document.getElementById(b.id);
+      if(el) el.style.width = b.w+'%';
+    }, 150*i);
+  });
+}
+
+// ═══════ INIT ═══════
+document.addEventListener('DOMContentLoaded', () => {
+  updateCosineSim();
+  updateIntraDemo();
+  updateInterDemo();
+
+  // Section 4 confusion zone
+  drawConfusionZone();
+  window.addEventListener('resize', drawConfusionZone);
+});
+</script>
+</body>
+</html>
