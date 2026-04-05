@@ -9,7 +9,11 @@ import time
 import gc
 import cloudinary.uploader
 from config.cloudinary_config import *
+<<<<<<< HEAD
 # 🔥 PRELOAD MODEL (VERY IMPORTANT FOR RENDER)
+=======
+#  PRELOAD MODEL (VERY IMPORTANT FOR RENDER)
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 print("[INFO] Loading ArcFace model...")
 try:
     DeepFace.build_model("ArcFace")
@@ -18,7 +22,11 @@ except Exception as e:
     print("[ERROR] Model load failed:", e)
 
 
+<<<<<<< HEAD
 # 🔥 Reduce TensorFlow logs
+=======
+#  Reduce TensorFlow logs
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 from models.student_model import add_student
@@ -37,7 +45,11 @@ face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
 
+<<<<<<< HEAD
 # 🔥 LOAD EMBEDDINGS ONCE (IMPORTANT)
+=======
+#  LOAD EMBEDDINGS ONCE (IMPORTANT)
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 if os.path.exists(EMBEDDING_PATH):
     with open(EMBEDDING_PATH, "rb") as f:
         known_embeddings, known_ids = pickle.load(f)
@@ -96,7 +108,11 @@ def capture_face(data):
 
     done = capture_counts[key] >= CAPTURE_LIMIT
 
+<<<<<<< HEAD
     # 🔥 FIX 3: ensure face exists before using it
+=======
+    #  FIX 3: ensure face exists before using it
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
     if done and key not in saved_students and face is not None:
         try:
             _, buffer = cv2.imencode(".jpg", face)
@@ -193,7 +209,11 @@ def recognize_face(frame):
 
         print("Distance:", min_dist)
 
+<<<<<<< HEAD
         if min_dist < 3.0:  # 🔥 tuned threshold
+=======
+        if min_dist < 3.0:  #  tuned threshold
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
             results.append(known_ids[index])
         else:
             results.append("Unknown")

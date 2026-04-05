@@ -305,4 +305,44 @@ select:focus {
 
 .progress-fill.low {
     background: #ff4d4d;
+<<<<<<< HEAD
+=======
+}
+
+/* ===== STUDENT DASHBOARD ===== */
+
+.student-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.student-info {
+    flex: 1;
+}
+
+.student-image img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(0,255,255,0.5);
+    box-shadow: 0 0 20px rgba(0,255,255,0.3);
+}
+
+.no-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: gray;
+}
+
+.low-attendance {
+    color: #ff4d4d;
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 }

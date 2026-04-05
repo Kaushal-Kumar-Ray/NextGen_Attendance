@@ -3,40 +3,145 @@
 
 <div class="center">
 <div class="card" style="max-width:400px; width:100%;">
+<<<<<<< HEAD
     <h2>Login</h2>
 
     <select id="role">
+=======
+
+    <h2>Login</h2>
+
+    <!-- ROLE SELECT -->
+    <select id="role" onchange="toggleLogin()">
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
         <option value="student">Student</option>
         <option value="admin">Admin</option>
     </select>
 
+<<<<<<< HEAD
     <input type="text" id="id" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
 
     <button onclick="login()">Login</button>
+=======
+    <!-- STUDENT LOGIN -->
+    <div id="studentLogin">
+        <input type="text" id="id" placeholder="Student Name">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- ADMIN LOGIN -->
+    <div id="adminLogin" style="display:none;">
+        <input type="text" id="admin_id" placeholder="Admin ID">
+        <input type="email" id="admin_email" placeholder="Admin Email">
+
+        <button onclick="sendOtp()">Send OTP</button>
+
+        <div id="otpSection" style="display:none;">
+            <input type="text" id="otp" placeholder="Enter OTP">
+            <button onclick="verifyOtp()">Verify OTP</button>
+        </div>
+    </div>
+
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 </div>
 </div>
 
 <script>
+<<<<<<< HEAD
 function login(){
     const id = document.getElementById("id").value;
     const password = document.getElementById("password").value;
     const role = document.getElementById("role").value;
+=======
+
+// 🔁 SWITCH UI
+function toggleLogin() {
+    const role = document.getElementById("role").value;
+
+    if (role === "admin") {
+        document.getElementById("studentLogin").style.display = "none";
+        document.getElementById("adminLogin").style.display = "block";
+    } else {
+        document.getElementById("studentLogin").style.display = "block";
+        document.getElementById("adminLogin").style.display = "none";
+    }
+}
+
+// 👨‍🎓 STUDENT LOGIN
+function login(){
+    const id = document.getElementById("id").value;
+    const password = document.getElementById("password").value;
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 
     fetch("/login", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
+<<<<<<< HEAD
         body:JSON.stringify({id,password,role})
+=======
+        body:JSON.stringify({id,password,role:"student"})
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
     })
     .then(res=>res.json())
     .then(data=>{
         if(data.success){
+<<<<<<< HEAD
             localStorage.setItem("role",data.role);
             localStorage.setItem("student_id",data.id);
             window.location.href = data.role === "admin" ? "/dashboard" : "/student-dashboard";
         } else alert(data.message);
     });
 }
+=======
+            window.location.href = "/student-dashboard";
+        } else alert(data.message);
+    });
+}
+
+// 👨‍💼 SEND OTP
+function sendOtp() {
+    const id = document.getElementById("admin_id").value;
+    const email = document.getElementById("admin_email").value;
+
+    fetch("/admin/send-otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({id, email})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("OTP sent to your email");
+            document.getElementById("otpSection").style.display = "block";
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+// 🔐 VERIFY OTP
+function verifyOtp() {
+    const email = document.getElementById("admin_email").value;
+    const otp = document.getElementById("otp").value;
+
+    fetch("/admin/verify-otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email, otp})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = "/dashboard";
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 </script>
 
 {% endblock %}

@@ -13,6 +13,7 @@
 {% if request.path != "/" %}
 <nav class="navbar">
     <div class="nav-left">🤖 NextGen Attendance</div>
+<<<<<<< HEAD
     <div class="nav-right" id="navLinks"></div>
 </nav>
 {% endif %}
@@ -38,9 +39,48 @@ if (role === "admin") {
 }
 </script>
 
+=======
+
+    <div class="nav-right">
+
+        {% if session.get("role") == "admin" %}
+            <a href="/dashboard">Dashboard</a>
+            <a href="/register">Register</a>
+            <a href="/attendance">Attendance</a>
+            <a href="/students">Students</a>
+            <a href="/admin/leaves">Leaves</a>
+            <a href="/records">Records</a>
+        {% elif session.get("role") == "student" %}
+            <a href="/student-dashboard">Dashboard</a>
+            <a href="/student-leaves">My Leaves</a>
+        {% endif %}
+
+        <!-- 🔥 Logout Button -->
+        {% if session.get("role") %}
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        {% endif %}
+
+    </div>
+</nav>
+{% endif %}
+
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 <div class="container">
     {% block content %}{% endblock %}
 </div>
 
+<<<<<<< HEAD
+=======
+<!-- 🔐 LOGOUT SCRIPT -->
+<script>
+function logout(){
+    fetch("/logout", { method: "POST" })
+    .then(() => {
+        window.location.href = "/";
+    });
+}
+</script>
+
+>>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 </body>
 </html>
