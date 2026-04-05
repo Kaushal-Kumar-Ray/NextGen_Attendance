@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Student Dashboard</h1>
+
+<div class="card student-card">
+
+    <!-- LEFT CONTENT -->
+    <div class="student-info">
+
+        <h2>{{ student.name }}</h2>
+        <p><strong>ID:</strong> {{ student.id }}</p>
+
+        <hr style="margin:20px 0;">
+
+        <h3>Attendance</h3>
+        <h2>{{ percentage }}%</h2>
+
+        {% if percentage >= 80 %}
+            <p>✅ Good Attendance</p>
+        {% else %}
+            <p class="low-attendance">⚠ Low Attendance (Approval Needed)</p>
+        {% endif %}
+
+        <button onclick="applyLeave()">Apply Leave</button>
+        <p id="msg"></p>
+
+    </div>
+
+    <!-- RIGHT IMAGE -->
+    <div class="student-image">
+        {% if student.image_url %}
+            <img src="{{ student.image_url }}" alt="Student">
+        {% else %}
+            <div class="no-image">No Image</div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+function applyLeave() {
+    const reason = prompt("Enter reason for leave:");
+    if (!reason) return;
+
+    fetch("/apply-leave", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            reason: reason
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("msg").innerText = data.message;
+    });
+}
+</script>
+
+{% endblock %}

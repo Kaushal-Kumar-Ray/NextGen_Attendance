@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Students</h1>
+
+<p>
+    <strong>Total:</strong> {{ total }} |
+    <strong>Present:</strong> {{ present }} |
+    <strong>Absent:</strong> {{ absent }}
+</p>
+
+<table>
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Status</th>
+    <th>Attendance %</th>
+    <th>Image</th>
+</tr>
+
+{% for s in students %}
+<tr>
+    <td>{{ s.id }}</td>
+    <td>{{ s.name }}</td>
+
+    <td>
+        {% if s.present %}
+            <span class="status-green">Present</span>
+        {% else %}
+            <span class="status-red">Absent</span>
+        {% endif %}
+    </td>
+
+    <td>
+        <div class="progress-bar">
+            <div class="progress-fill 
+                {% if s.percentage >= 80 %}good
+                {% elif s.percentage >= 50 %}mid
+                {% else %}low{% endif %}"
+                style="width: {{ s.percentage }}%">
+            </div>
+        </div>
+        <span>{{ s.percentage }}%</span>
+    </td>
+
+    <td>
+        {% if s.image_url %}
+            <img src="{{ s.image_url }}" width="40" style="border-radius:50%">
+        {% else %}
+            <span style="color:gray;">No Image</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}

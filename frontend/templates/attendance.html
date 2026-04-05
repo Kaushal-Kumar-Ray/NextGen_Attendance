@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 style="text-align:center;">Live Attendance</h1>
+
+<div class="camera-wrapper">
+    <canvas id="canvas"></canvas>
+</div>
+
+<p id="status" style="text-align:center; margin-top:10px;"></p>
+
+<script src="/static/js/attendance.js"></script>
+
+{% endblock %}

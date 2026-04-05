@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 style="text-align:center;">Register Student</h1>
+
+<div class="register-wrapper">
+
+    <!-- FORM -->
+    <div class="card register-card">
+        <h2>Student Details</h2>
+
+        <input type="text" id="student_id" placeholder="Student ID" required>
+        <input type="text" id="student_name" placeholder="Student Name" required>
+
+        <button onclick="startCapture()">📷 Start Capture</button>
+    </div>
+
+    <!-- CAMERA -->
+    <div class="camera-section">
+        <canvas id="canvas"></canvas>
+
+        <p class="instruction">
+            Look straight at the camera until capture completes.
+        </p>
+
+        <p id="status"></p>
+
+        <button id="trainBtn" style="display:none;" onclick="trainModel()">
+            💾 Train Model
+        </button>
+    </div>
+
+</div>
+
+<script src="/static/js/register.js"></script>
+
+{% endblock %}

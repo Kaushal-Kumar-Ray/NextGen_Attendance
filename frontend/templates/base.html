@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+{% if request.path != "/" %}
+<nav class="navbar">
+    <div class="nav-left">🤖 NextGen Attendance</div>
+
+    <div class="nav-right">
+
+        {% if session.get("role") == "admin" %}
+            <a href="/dashboard">Dashboard</a>
+            <a href="/register">Register</a>
+            <a href="/attendance">Attendance</a>
+            <a href="/students">Students</a>
+            <a href="/admin/leaves">Leaves</a>
+            <a href="/records">Records</a>
+        {% elif session.get("role") == "student" %}
+            <a href="/student-dashboard">Dashboard</a>
+            <a href="/student-leaves">My Leaves</a>
+        {% endif %}
+
+        <!-- 🔥 Logout Button -->
+        {% if session.get("role") %}
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        {% endif %}
+
+    </div>
+</nav>
+{% endif %}
+
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- 🔐 LOGOUT SCRIPT -->
+<script>
+function logout(){
+    fetch("/logout", { method: "POST" })
+    .then(() => {
+        window.location.href = "/";
+    });
+}
+</script>
+
+</body>
+</html>
