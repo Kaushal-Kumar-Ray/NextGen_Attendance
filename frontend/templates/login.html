@@ -3,27 +3,15 @@
 
 <div class="center">
 <div class="card" style="max-width:400px; width:100%;">
-<<<<<<< HEAD
-    <h2>Login</h2>
-
-    <select id="role">
-=======
 
     <h2>Login</h2>
 
     <!-- ROLE SELECT -->
     <select id="role" onchange="toggleLogin()">
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
         <option value="student">Student</option>
         <option value="admin">Admin</option>
     </select>
 
-<<<<<<< HEAD
-    <input type="text" id="id" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-
-    <button onclick="login()">Login</button>
-=======
     <!-- STUDENT LOGIN -->
     <div id="studentLogin">
         <input type="text" id="id" placeholder="Student Name">
@@ -44,17 +32,10 @@
         </div>
     </div>
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 </div>
 </div>
 
 <script>
-<<<<<<< HEAD
-function login(){
-    const id = document.getElementById("id").value;
-    const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
-=======
 
 // 🔁 SWITCH UI
 function toggleLogin() {
@@ -73,28 +54,15 @@ function toggleLogin() {
 function login(){
     const id = document.getElementById("id").value;
     const password = document.getElementById("password").value;
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 
     fetch("/login", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
-<<<<<<< HEAD
-        body:JSON.stringify({id,password,role})
-=======
         body:JSON.stringify({id,password,role:"student"})
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
     })
     .then(res=>res.json())
     .then(data=>{
         if(data.success){
-<<<<<<< HEAD
-            localStorage.setItem("role",data.role);
-            localStorage.setItem("student_id",data.id);
-            window.location.href = data.role === "admin" ? "/dashboard" : "/student-dashboard";
-        } else alert(data.message);
-    });
-}
-=======
             window.location.href = "/student-dashboard";
         } else alert(data.message);
     });
@@ -141,7 +109,6 @@ function verifyOtp() {
     });
 }
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 </script>
 
 {% endblock %}

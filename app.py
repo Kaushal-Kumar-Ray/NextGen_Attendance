@@ -12,9 +12,7 @@ app = Flask(
     template_folder=os.path.join(BASE_DIR, "frontend", "templates"),
     static_folder=os.path.join(BASE_DIR, "frontend", "static")
 )
-
 app.secret_key = "super-secret-key"
-
 from routes.main_routes import main_bp
 from routes.student_routes import student_bp
 from routes.attendance_routes import attendance_bp

@@ -3,26 +3,6 @@
 
 <h1>Student Dashboard</h1>
 
-<<<<<<< HEAD
-<div class="card" style="max-width:500px;">
-
-```
-<h2 id="studentName">Loading...</h2>
-<p><strong>ID:</strong> <span id="studentId"></span></p>
-
-<hr style="margin:20px 0;">
-
-<h3>Attendance</h3>
-<h2 id="percentage">--%</h2>
-<p id="statusText"></p>
-
-<button id="leaveBtn" onclick="applyLeave()">
-    Apply Leave
-</button>
-
-<p id="msg"></p>
-```
-=======
 <div class="card student-card">
 
     <!-- LEFT CONTENT -->
@@ -55,53 +35,18 @@
             <div class="no-image">No Image</div>
         {% endif %}
     </div>
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 
 </div>
 
 <script>
-<<<<<<< HEAD
-const studentId = localStorage.getItem("student_id");
-
-if (!studentId) {
-    window.location.href = "/login";
-}
-
-// 🔥 Fetch student data
-fetch(`/student/${studentId}/attendance`)
-.then(res => res.json())
-.then(data => {
-
-    document.getElementById("studentId").innerText = studentId;
-    document.getElementById("studentName").innerText = data.name;
-    document.getElementById("percentage").innerText = data.percentage + "%";
-
-    if (data.percentage >= 80) {
-        document.getElementById("statusText").innerText = "✅ Good Attendance";
-    } else {
-        document.getElementById("statusText").innerText = "⚠ Low Attendance (Approval Needed)";
-    }
-});
-
-// 🔥 Apply Leave
-function applyLeave() {
-
-    const reason = prompt("Enter reason for leave:");
-
-=======
 function applyLeave() {
     const reason = prompt("Enter reason for leave:");
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
     if (!reason) return;
 
     fetch("/apply-leave", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-<<<<<<< HEAD
-            student_id: studentId,
-=======
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
             reason: reason
         })
     })
@@ -110,13 +55,6 @@ function applyLeave() {
         document.getElementById("msg").innerText = data.message;
     });
 }
-<<<<<<< HEAD
-
 </script>
 
 {% endblock %}
-=======
-</script>
-
-{% endblock %}
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf

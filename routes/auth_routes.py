@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-from flask import Blueprint, request, jsonify
-from services.db_service import load_students
-
-auth_bp = Blueprint("auth", __name__)
-
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "000"
-=======
 from flask import Blueprint, request, jsonify, session
 from services.db_service import load_students
 from database.db import get_connection
@@ -131,56 +122,27 @@ def verify_otp():
 
 
 # ================= STUDENT LOGIN =================
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.json
 
-<<<<<<< HEAD
-    username = data.get("id")        # 🔥 frontend still sends "id"
-    password = data.get("password")
-    role = data.get("role")
-
-    # ================= ADMIN LOGIN =================
-    if role == "admin":
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            return jsonify({
-                "success": True,
-                "role": "admin"
-            })
-        else:
-            return jsonify({
-                "success": False,
-                "message": "Invalid admin login"
-            })
-
-    # ================= STUDENT LOGIN =================
-=======
     username = data.get("id")
     password = data.get("password")
     role = data.get("role")
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
     if role == "student":
         students = load_students()
 
         for s in students:
-<<<<<<< HEAD
-            # 🔥 NEW LOGIC
-=======
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
             if (
                 s["name"].lower() == username.lower() and
                 str(s["id"]) == str(password)
             ):
-<<<<<<< HEAD
-=======
                 # ✅ SET SESSION ONLY AFTER SUCCESS
                 session["role"] = "student"
                 session["user"] = s["id"]
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
                 return jsonify({
                     "success": True,
                     "role": "student",
@@ -191,9 +153,6 @@ def login():
         return jsonify({
             "success": False,
             "message": "Invalid student login"
-<<<<<<< HEAD
-        })
-=======
         })
 
     return jsonify({
@@ -207,4 +166,3 @@ def login():
 def logout():
     session.clear()  # 🔥 clears admin/student session
     return {"success": True}
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf

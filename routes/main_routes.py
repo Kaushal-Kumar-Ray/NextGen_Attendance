@@ -93,27 +93,6 @@ def records_page():
         records=load_attendance()
     )
 
-<<<<<<< HEAD
-@main_bp.route("/student-dashboard")
-def student_dashboard():
-    return render_template("student_dashboard.html")
-
-
-
-
-
-@main_bp.route("/student/<id>/attendance")
-def student_attendance(id):
-    from services.db_service import load_attendance, load_students
-
-    attendance = load_attendance()
-    students = load_students()
-
-    student = next((s for s in students if s["id"] == id), None)
-
-    total_days = len(set([a["date"] for a in attendance]))
-    present_days = len([a for a in attendance if a["id"] == id])
-=======
 from flask import session, redirect
 
 @main_bp.route("/student-dashboard")
@@ -135,18 +114,11 @@ def student_dashboard():
     # Calculate attendance
     total_days = len(set([a["date"] for a in attendance]))
     present_days = len([a for a in attendance if str(a["id"]) == str(student_id)])
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 
     percentage = 0
     if total_days > 0:
         percentage = round((present_days / total_days) * 100, 2)
 
-<<<<<<< HEAD
-    return {
-        "name": student["name"] if student else "Unknown",
-        "percentage": percentage
-    }
-=======
     return render_template(
         "student_dashboard.html",
         student=student,
@@ -154,7 +126,6 @@ def student_dashboard():
     )
 
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 
 
 @main_bp.route("/admin/leaves")

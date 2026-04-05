@@ -13,33 +13,6 @@
 {% if request.path != "/" %}
 <nav class="navbar">
     <div class="nav-left">🤖 NextGen Attendance</div>
-<<<<<<< HEAD
-    <div class="nav-right" id="navLinks"></div>
-</nav>
-{% endif %}
-
-<script>
-const role = localStorage.getItem("role");
-const nav = document.getElementById("navLinks");
-
-if (role === "admin") {
-    nav.innerHTML = `
-        <a href="/dashboard">Dashboard</a>
-        <a href="/register">Register</a>
-        <a href="/attendance">Attendance</a>
-        <a href="/students">Students</a>
-        <a href="/admin/leaves">Leaves</a>
-        <a href="/records">Records</a>
-    `;
-} else if (role === "student") {
-    nav.innerHTML = `
-        <a href="/student-dashboard">Dashboard</a>
-        <a href="/student-leaves">My Leaves</a>
-    `;
-}
-</script>
-
-=======
 
     <div class="nav-right">
 
@@ -64,13 +37,10 @@ if (role === "admin") {
 </nav>
 {% endif %}
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 <div class="container">
     {% block content %}{% endblock %}
 </div>
 
-<<<<<<< HEAD
-=======
 <!-- 🔐 LOGOUT SCRIPT -->
 <script>
 function logout(){
@@ -81,6 +51,5 @@ function logout(){
 }
 </script>
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 </body>
 </html>
