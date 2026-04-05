@@ -6,20 +6,15 @@ load_dotenv()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
 app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, "frontend", "templates"),
     static_folder=os.path.join(BASE_DIR, "frontend", "static")
 )
-<<<<<<< HEAD
 
-=======
 app.secret_key = "super-secret-key"
->>>>>>> 1d7e363635bb8865ba8c25daa9b5b3126823fbbf
+
 from routes.main_routes import main_bp
 from routes.student_routes import student_bp
 from routes.attendance_routes import attendance_bp
