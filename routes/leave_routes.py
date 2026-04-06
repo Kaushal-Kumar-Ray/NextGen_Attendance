@@ -130,8 +130,15 @@ def reject_leave():
 
 
 
-@leave_bp.route("/student-leaves/<student_id>", methods=["GET"])
-def student_leaves(student_id):
+from flask import session
+
+@leave_bp.route("/student-leaves", methods=["GET"])
+def student_leaves():
+    student_id = session.get("student_id")   # 🔥 from session
+
+    if not student_id:
+        return jsonify([])
+
     conn = get_connection()
     cur = conn.cursor()
 

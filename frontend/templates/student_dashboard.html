@@ -41,13 +41,18 @@
 <script>
 function applyLeave() {
     const reason = prompt("Enter reason for leave:");
-    if (!reason) return;
+
+    if (!reason || reason.trim() === "") {
+        document.getElementById("msg").innerText = "Please enter valid reason";
+        return;
+    }
 
     fetch("/apply-leave", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-            reason: reason
+            student_id: {{ student.id }},   // 🔥 ADD THIS
+            reason: reason.trim()
         })
     })
     .then(res => res.json())
@@ -56,5 +61,4 @@ function applyLeave() {
     });
 }
 </script>
-
 {% endblock %}

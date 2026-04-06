@@ -18,48 +18,37 @@
 </div>
 
 <script>
-const student_id = localStorage.getItem("student_id");
+fetch("/student-leaves")   // 🔥 no ID needed
+.then(res => res.json())
+.then(data => {
+    const table = document.getElementById("leaveTable");
 
-// 🔥 FIX: check before calling API
-if (!student_id) {
-    document.getElementById("leaveTable").innerHTML =
-        "<tr><td colspan='3'>No student logged in</td></tr>";
-} else {
+    if (!data || data.length === 0) {
+        table.innerHTML = "<tr><td colspan='3'>No leaves found</td></tr>";
+        return;
+    }
 
-    fetch(`/student-leaves/${student_id}`)
-    .then(res => res.json())
-    .then(data => {
-        const table = document.getElementById("leaveTable");
+    data.forEach(l => {
+        const row = document.createElement("tr");
 
-        if (data.length === 0) {
-            table.innerHTML = "<tr><td colspan='3'>No leaves found</td></tr>";
-            return;
-        }
+        let color = "#fff";
+        if (l.status === "approved") color = "#00f5ff";
+        if (l.status === "rejected") color = "#ff4d4d";
+        if (l.status === "pending") color = "#ffd166";
 
-        data.forEach(l => {
-            const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${l.reason}</td>
+            <td style="color:${color}; font-weight:bold">${l.status}</td>
+            <td>${l.created_at}</td>
+        `;
 
-            // 🔥 add color
-            let color = "#fff";
-            if (l.status === "approved") color = "#00f5ff";
-            if (l.status === "rejected") color = "#ff4d4d";
-            if (l.status === "pending") color = "#ffd166";
-
-            row.innerHTML = `
-                <td>${l.reason}</td>
-                <td style="color:${color}; font-weight:bold">${l.status}</td>
-                <td>${l.created_at}</td>
-            `;
-
-            table.appendChild(row);
-        });
-    })
-    .catch(() => {
-        document.getElementById("leaveTable").innerHTML =
-            "<tr><td colspan='3'>Error loading data</td></tr>";
+        table.appendChild(row);
     });
-
-}
+})
+.catch(() => {
+    document.getElementById("leaveTable").innerHTML =
+        "<tr><td colspan='3'>Error loading data</td></tr>";
+});
 </script>
 
 {% endblock %}

@@ -10,12 +10,20 @@
 
 <body>
 
-{% if request.path != "/" %}
+{% if request.path != "/" and session.get("role") %}
+
 <nav class="navbar">
-    <div class="nav-left">🤖 NextGen Attendance</div>
+    <div class="nav-left">
+        {% if session.get("role") == "admin" %}
+            🤖 NextGen Attendance (Admin)
+        {% elif session.get("role") == "student" %}
+            🎓 Student Panel
+        {% endif %}
+    </div>
 
     <div class="nav-right">
 
+        <!-- 🔐 ADMIN NAV -->
         {% if session.get("role") == "admin" %}
             <a href="/dashboard">Dashboard</a>
             <a href="/register">Register</a>
@@ -23,18 +31,20 @@
             <a href="/students">Students</a>
             <a href="/admin/leaves">Leaves</a>
             <a href="/records">Records</a>
-        {% elif session.get("role") == "student" %}
+        {% endif %}
+
+        <!-- 🎓 STUDENT NAV -->
+        {% if session.get("role") == "student" %}
             <a href="/student-dashboard">Dashboard</a>
             <a href="/student-leaves">My Leaves</a>
         {% endif %}
 
-        <!-- 🔥 Logout Button -->
-        {% if session.get("role") %}
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        {% endif %}
+        <!-- 🔥 LOGOUT (COMMON) -->
+        <button class="logout-btn" onclick="logout()">Logout</button>
 
     </div>
 </nav>
+
 {% endif %}
 
 <div class="container">
