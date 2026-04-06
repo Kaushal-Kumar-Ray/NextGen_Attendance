@@ -27,3 +27,4 @@ CREATE TABLE  if not exists admin_otp (
     otp VARCHAR,
     expires_at TIMESTAMP
 );
+
