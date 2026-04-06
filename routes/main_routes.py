@@ -93,40 +93,49 @@ def records_page():
         records=load_attendance()
     )
 
-from flask import session, redirect
+from flask import render_template, session, redirect
+from services.db_service import load_students, load_attendance
 
 @main_bp.route("/student-dashboard")
 def student_dashboard():
-    if session.get("role") != "student":
-        return redirect("/")
+    student_id = session.get("student_id")
 
-    student_id = session.get("user")
+    # 🔒 Not logged in
+    if not student_id:
+        return redirect("/")
 
     students = load_students()
     attendance = load_attendance()
 
-    # Find student
-    student = next((s for s in students if str(s["id"]) == str(student_id)), None)
+    # 🔍 Find student safely
+    student = None
+    for s in students:
+        if str(s["id"]) == str(student_id):
+            student = s
+            break
 
-    if not student:
-        return render_template("student_dashboard.html", student=None)
+    # ❗ ALWAYS RETURN (important)
+    if student is None:
+        return render_template(
+            "student_dashboard.html",
+            student=None,
+            percentage=0
+        )
 
-    # Calculate attendance
+    # 📊 Attendance calculation
     total_days = len(set([a["date"] for a in attendance]))
     present_days = len([a for a in attendance if str(a["id"]) == str(student_id)])
 
     percentage = 0
     if total_days > 0:
-        percentage = round((present_days / total_days) * 100, 2)
+        percentage = int((present_days / total_days) * 100)
 
+    # ✅ FINAL RETURN (THIS MUST ALWAYS RUN)
     return render_template(
         "student_dashboard.html",
         student=student,
         percentage=percentage
     )
-
-
-
 
 @main_bp.route("/admin/leaves")
 def admin_leaves():

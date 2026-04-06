@@ -141,7 +141,7 @@ def login():
             ):
                 # ✅ SET SESSION ONLY AFTER SUCCESS
                 session["role"] = "student"
-                session["user"] = s["id"]
+                session["student_id"] = s["id"]
 
                 return jsonify({
                     "success": True,

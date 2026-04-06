@@ -8,18 +8,28 @@
     <!-- LEFT CONTENT -->
     <div class="student-info">
 
-        <h2>{{ student.name }}</h2>
-        <p><strong>ID:</strong> {{ student.id }}</p>
+        {% if student %}
+            <h2>{{ student.name }}</h2>
+            <p><strong>ID:</strong> {{ student.id }}</p>
+        {% else %}
+            <h2>No student data</h2>
+        {% endif %}
 
         <hr style="margin:20px 0;">
 
         <h3>Attendance</h3>
-        <h2>{{ percentage }}%</h2>
 
-        {% if percentage >= 80 %}
-            <p>✅ Good Attendance</p>
+        <!-- ✅ SAFE CHECK -->
+        {% if percentage is defined %}
+            <h2>{{ percentage }}%</h2>
+
+            {% if percentage >= 80 %}
+                <p>✅ Good Attendance</p>
+            {% else %}
+                <p class="low-attendance">⚠ Low Attendance (Approval Needed)</p>
+            {% endif %}
         {% else %}
-            <p class="low-attendance">⚠ Low Attendance (Approval Needed)</p>
+            <p>Attendance data not available</p>
         {% endif %}
 
         <button onclick="applyLeave()">Apply Leave</button>
@@ -29,7 +39,7 @@
 
     <!-- RIGHT IMAGE -->
     <div class="student-image">
-        {% if student.image_url %}
+        {% if student and student.image_url %}
             <img src="{{ student.image_url }}" alt="Student">
         {% else %}
             <div class="no-image">No Image</div>
@@ -51,7 +61,7 @@ function applyLeave() {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-            student_id: {{ student.id }},   // 🔥 ADD THIS
+            student_id: "{{ student.id if student else '' }}",
             reason: reason.trim()
         })
     })
@@ -61,4 +71,5 @@ function applyLeave() {
     });
 }
 </script>
+
 {% endblock %}

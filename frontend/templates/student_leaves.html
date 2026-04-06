@@ -18,12 +18,19 @@
 </div>
 
 <script>
-fetch("/student-leaves")   // 🔥 no ID needed
-.then(res => res.json())
+fetch("/api/student-leaves")
+.then(res => {
+    if (!res.ok) throw new Error("HTTP error");
+    return res.json();
+})
 .then(data => {
     const table = document.getElementById("leaveTable");
 
-    if (!data || data.length === 0) {
+    // 🔥 DEBUG
+    console.log("DATA:", data);
+
+    // ✅ HANDLE EMPTY OR INVALID
+    if (!Array.isArray(data) || data.length === 0) {
         table.innerHTML = "<tr><td colspan='3'>No leaves found</td></tr>";
         return;
     }
@@ -45,7 +52,8 @@ fetch("/student-leaves")   // 🔥 no ID needed
         table.appendChild(row);
     });
 })
-.catch(() => {
+.catch(err => {
+    console.error("FETCH ERROR:", err);
     document.getElementById("leaveTable").innerHTML =
         "<tr><td colspan='3'>Error loading data</td></tr>";
 });

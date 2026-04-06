@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database.db import get_connection
 from services.db_service import load_attendance
-
+from flask import session, jsonify
 # 🔥 Blueprint
 leave_bp = Blueprint("leave", __name__)
 
@@ -130,11 +130,12 @@ def reject_leave():
 
 
 
-from flask import session
 
-@leave_bp.route("/student-leaves", methods=["GET"])
+@leave_bp.route("/api/student-leaves", methods=["GET"])
 def student_leaves():
-    student_id = session.get("student_id")   # 🔥 from session
+    student_id = session.get("student_id")
+
+    print("SESSION:", session)   # 🔥 debug
 
     if not student_id:
         return jsonify([])
@@ -142,24 +143,30 @@ def student_leaves():
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT reason, status, created_at
-        FROM leaves
-        WHERE student_id = %s
-        ORDER BY created_at DESC
-    """, (student_id,))
+    try:
+        cur.execute("""
+            SELECT reason, status, created_at
+            FROM leaves
+            WHERE student_id = %s
+            ORDER BY created_at DESC
+        """, (student_id,))
 
-    rows = cur.fetchall()
+        rows = cur.fetchall()
 
-    cur.close()
-    conn.close()
+        leaves = []
+        for r in rows:
+            leaves.append({
+                "reason": r[0],
+                "status": r[1],
+                "created_at": str(r[2])
+            })
 
-    leaves = []
-    for r in rows:
-        leaves.append({
-            "reason": r[0],
-            "status": r[1],
-            "created_at": str(r[2])
-        })
+        return jsonify(leaves)
 
-    return jsonify(leaves)
+    except Exception as e:
+        print("ERROR:", e)
+        return jsonify([])   # prevent frontend crash
+
+    finally:
+        cur.close()
+        conn.close()
