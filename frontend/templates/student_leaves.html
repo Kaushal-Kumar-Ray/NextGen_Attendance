@@ -1,19 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>My Leave Requests</h1>
+<div class="page-header">
+    <div class="page-header-icon">📋</div>
+    <div>
+        <h1>My Leave Requests</h1>
+        <p>Track all your submitted leave applications</p>
+    </div>
+</div>
 
-<div class="card">
-    <table>
+<div class="card" style="padding:0; overflow:hidden;">
+    <table style="margin-top:0; box-shadow:none; border:none; border-radius:0;">
         <thead>
             <tr>
                 <th>Reason</th>
                 <th>Status</th>
-                <th>Date</th>
+                <th>Submitted On</th>
             </tr>
         </thead>
-
-        <tbody id="leaveTable"></tbody>
+        <tbody id="leaveTable">
+            <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:32px;">Loading...</td></tr>
+        </tbody>
     </table>
 </div>
 
@@ -26,36 +33,27 @@ fetch("/api/student-leaves")
 .then(data => {
     const table = document.getElementById("leaveTable");
 
-    // 🔥 DEBUG
-    console.log("DATA:", data);
-
-    // ✅ HANDLE EMPTY OR INVALID
     if (!Array.isArray(data) || data.length === 0) {
-        table.innerHTML = "<tr><td colspan='3'>No leaves found</td></tr>";
+        table.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:32px;">No leave requests found</td></tr>`;
         return;
     }
 
+    table.innerHTML = '';
     data.forEach(l => {
         const row = document.createElement("tr");
-
-        let color = "#fff";
-        if (l.status === "approved") color = "#00f5ff";
-        if (l.status === "rejected") color = "#ff4d4d";
-        if (l.status === "pending") color = "#ffd166";
-
+        const badgeClass = l.status === 'approved' ? 'badge-approved' : l.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
         row.innerHTML = `
-            <td>${l.reason}</td>
-            <td style="color:${color}; font-weight:bold">${l.status}</td>
-            <td>${l.created_at}</td>
+            <td style="color:var(--text-2);">${l.reason}</td>
+            <td><span class="badge ${badgeClass}">${l.status}</span></td>
+            <td style="color:var(--muted);font-size:13px;">${l.created_at}</td>
         `;
-
         table.appendChild(row);
     });
 })
 .catch(err => {
     console.error("FETCH ERROR:", err);
     document.getElementById("leaveTable").innerHTML =
-        "<tr><td colspan='3'>Error loading data</td></tr>";
+        `<tr><td colspan="3" style="text-align:center;color:var(--danger);padding:32px;">Error loading data</td></tr>`;
 });
 </script>
 

@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else "NextGen Attendance" }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
@@ -12,18 +12,18 @@
 
 {% if request.path != "/" and session.get("role") %}
 
+<!-- ── NAVBAR ── -->
 <nav class="navbar">
     <div class="nav-left">
         {% if session.get("role") == "admin" %}
-            🤖 NextGen Attendance (Admin)
+            NextGen Attendance &nbsp;·&nbsp; Admin
         {% elif session.get("role") == "student" %}
-            🎓 Student Panel
+            NextGen Attendance &nbsp;·&nbsp; Student
         {% endif %}
     </div>
 
+    <!-- Desktop links -->
     <div class="nav-right">
-
-        <!-- 🔐 ADMIN NAV -->
         {% if session.get("role") == "admin" %}
             <a href="/dashboard">Dashboard</a>
             <a href="/register">Register</a>
@@ -32,18 +32,37 @@
             <a href="/admin/leaves">Leaves</a>
             <a href="/records">Records</a>
         {% endif %}
-
-        <!-- 🎓 STUDENT NAV -->
         {% if session.get("role") == "student" %}
             <a href="/student-dashboard">Dashboard</a>
             <a href="/student-leaves">My Leaves</a>
         {% endif %}
-
-        <!-- 🔥 LOGOUT (COMMON) -->
         <button class="logout-btn" onclick="logout()">Logout</button>
-
     </div>
+
+    <!-- Hamburger (mobile) -->
+    <button class="nav-hamburger" onclick="toggleDrawer()" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 </nav>
+
+<!-- ── MOBILE DRAWER ── -->
+<div class="nav-drawer" id="navDrawer">
+    {% if session.get("role") == "admin" %}
+        <a href="/dashboard"   onclick="closeDrawer()">📊 Dashboard</a>
+        <a href="/register"    onclick="closeDrawer()">➕ Register</a>
+        <a href="/attendance"  onclick="closeDrawer()">📷 Attendance</a>
+        <a href="/students"    onclick="closeDrawer()">👨‍🎓 Students</a>
+        <a href="/admin/leaves" onclick="closeDrawer()">📝 Leaves</a>
+        <a href="/records"     onclick="closeDrawer()">📋 Records</a>
+    {% endif %}
+    {% if session.get("role") == "student" %}
+        <a href="/student-dashboard" onclick="closeDrawer()">📊 Dashboard</a>
+        <a href="/student-leaves"    onclick="closeDrawer()">📋 My Leaves</a>
+    {% endif %}
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
 
 {% endif %}
 
@@ -51,14 +70,28 @@
     {% block content %}{% endblock %}
 </div>
 
-<!-- 🔐 LOGOUT SCRIPT -->
 <script>
-function logout(){
+function logout() {
     fetch("/logout", { method: "POST" })
-    .then(() => {
-        window.location.href = "/";
-    });
+        .then(() => { window.location.href = "/"; });
 }
+
+function toggleDrawer() {
+    document.getElementById("navDrawer").classList.toggle("open");
+}
+
+function closeDrawer() {
+    document.getElementById("navDrawer").classList.remove("open");
+}
+
+// Close drawer on outside click
+document.addEventListener("click", function(e) {
+    const drawer = document.getElementById("navDrawer");
+    const hamburger = document.querySelector(".nav-hamburger");
+    if (drawer && !drawer.contains(e.target) && hamburger && !hamburger.contains(e.target)) {
+        drawer.classList.remove("open");
+    }
+});
 </script>
 
 </body>

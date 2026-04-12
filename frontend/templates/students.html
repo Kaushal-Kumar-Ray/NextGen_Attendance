@@ -1,58 +1,85 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Students</h1>
+<div class="page-header">
+    <div class="page-header-icon">👨‍🎓</div>
+    <div>
+        <h1>Students</h1>
+        <p>All registered students and their attendance status</p>
+    </div>
+</div>
 
-<p>
-    <strong>Total:</strong> {{ total }} |
-    <strong>Present:</strong> {{ present }} |
-    <strong>Absent:</strong> {{ absent }}
-</p>
+<!-- SUMMARY ROW -->
+<div class="cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom:24px;">
+    <div class="card stat-card">
+        <div class="stat-icon">👥</div>
+        <div>
+            <h2>{{ total }}</h2>
+            <p>Total</p>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon green">✅</div>
+        <div>
+            <h2>{{ present }}</h2>
+            <p>Present Today</p>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon red">❌</div>
+        <div>
+            <h2>{{ absent }}</h2>
+            <p>Absent Today</p>
+        </div>
+    </div>
+</div>
 
 <table>
-<tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th>Status</th>
-    <th>Attendance %</th>
-    <th>Image</th>
-</tr>
-
-{% for s in students %}
-<tr>
-    <td>{{ s.id }}</td>
-    <td>{{ s.name }}</td>
-
-    <td>
-        {% if s.present %}
-            <span class="status-green">Present</span>
-        {% else %}
-            <span class="status-red">Absent</span>
-        {% endif %}
-    </td>
-
-    <td>
-        <div class="progress-bar">
-            <div class="progress-fill 
-                {% if s.percentage >= 80 %}good
-                {% elif s.percentage >= 50 %}mid
-                {% else %}low{% endif %}"
-                style="width: {{ s.percentage }}%">
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Attendance</th>
+            <th>Photo</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for s in students %}
+    <tr>
+        <td style="font-weight:600; color:var(--text);">{{ s.name }}</td>
+        <td style="font-family:monospace; font-size:13px;">{{ s.id }}</td>
+        <td>
+            {% if s.present %}
+                <span class="status-green">Present</span>
+            {% else %}
+                <span class="status-red">Absent</span>
+            {% endif %}
+        </td>
+        <td>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="progress-bar" style="width:80px;">
+                    <div class="progress-fill
+                        {% if s.percentage >= 80 %}good
+                        {% elif s.percentage >= 50 %}mid
+                        {% else %}low{% endif %}"
+                        style="width: {{ s.percentage }}%">
+                    </div>
+                </div>
+                <span style="font-size:13px; font-weight:600; color:var(--text-2);">{{ s.percentage }}%</span>
             </div>
-        </div>
-        <span>{{ s.percentage }}%</span>
-    </td>
-
-    <td>
-        {% if s.image_url %}
-            <img src="{{ s.image_url }}" width="40" style="border-radius:50%">
-        {% else %}
-            <span style="color:gray;">No Image</span>
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
-
+        </td>
+        <td>
+            {% if s.image_url %}
+                <img src="{{ s.image_url }}" width="36" height="36"
+                     style="border-radius:50%; object-fit:cover; border:2px solid var(--border);">
+            {% else %}
+                <span style="color:var(--muted); font-size:13px;">—</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
 </table>
 
 {% endblock %}

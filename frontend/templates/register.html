@@ -1,32 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 style="text-align:center;">Register Student</h1>
+<div class="page-header">
+    <div class="page-header-icon">➕</div>
+    <div>
+        <h1>Register Student</h1>
+        <p>Capture face samples and enroll a new student in the system</p>
+    </div>
+</div>
 
 <div class="register-wrapper">
 
     <!-- FORM -->
     <div class="card register-card">
-        <h2>Student Details</h2>
+        <h3 style="font-size:15px; font-weight:600; color:var(--text); margin-bottom:18px;">Student Details</h3>
 
-        <input type="text" id="student_id" placeholder="Student ID" required>
-        <input type="text" id="student_name" placeholder="Student Name" required>
+        <div style="margin-bottom:12px;">
+            <label style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Student ID</label>
+            <input type="text" id="student_id" placeholder="e.g. STU2024001" style="margin-top:0;">
+        </div>
 
-        <button onclick="startCapture()">📷 Start Capture</button>
+        <div style="margin-bottom:18px;">
+            <label style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Full Name</label>
+            <input type="text" id="student_name" placeholder="e.g. Kaushal Kumar Ray" style="margin-top:0;">
+        </div>
+
+        <button onclick="startCapture()" style="width:100%;">📷 &nbsp;Start Face Capture</button>
+
+        <div style="margin-top:20px; padding:14px; background:var(--accent-bg); border:1px solid #bfdbfe; border-radius:var(--radius-sm);">
+            <p style="font-size:12.5px; color:var(--accent); font-weight:600; margin-bottom:4px;">How it works</p>
+            <p style="font-size:12px; color:var(--text-2); line-height:1.6;">
+                1. Fill in student details<br>
+                2. Click Start Capture<br>
+                3. Stay still — 30 frames will be captured<br>
+                4. Click Train Model to save
+            </p>
+        </div>
     </div>
 
     <!-- CAMERA -->
     <div class="camera-section">
         <canvas id="canvas"></canvas>
 
-        <p class="instruction">
+        <p class="instruction" style="margin-top:12px;">
             Look straight at the camera until capture completes.
         </p>
 
-        <p id="status"></p>
+        <p id="status" style="margin-top:8px; font-size:14px; font-weight:600; color:var(--text-2);"></p>
 
-        <button id="trainBtn" style="display:none;" onclick="trainModel()">
-            💾 Train Model
+        <button id="trainBtn" style="display:none; margin-top:16px; background:var(--success); color:white;" onclick="trainModel()">
+            💾 &nbsp;Train Model
         </button>
     </div>
 

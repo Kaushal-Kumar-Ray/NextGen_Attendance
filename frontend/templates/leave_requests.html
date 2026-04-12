@@ -1,20 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Leave Requests</h1>
+<div class="page-header">
+    <div class="page-header-icon">📝</div>
+    <div>
+        <h1>Leave Requests</h1>
+        <p>Review and manage student leave applications</p>
+    </div>
+</div>
 
-<table border="1" cellpadding="10">
+<table>
     <thead>
         <tr>
-            <th>Name</th>
+            <th>Student</th>
             <th>ID</th>
             <th>Reason</th>
             <th>Status</th>
             <th>Action</th>
         </tr>
     </thead>
-
-    <tbody id="leaveTable"></tbody>
+    <tbody id="leaveTable">
+        <tr><td colspan="5" style="text-align:center; color:var(--muted); padding:32px;">Loading...</td></tr>
+    </tbody>
 </table>
 
 <script>
@@ -24,30 +31,28 @@ fetch("/leaves")
     const table = document.getElementById("leaveTable");
 
     if (data.length === 0) {
-        table.innerHTML = "<tr><td colspan='5'>No requests</td></tr>";
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">No leave requests found</td></tr>`;
         return;
     }
 
+    table.innerHTML = '';
     data.forEach(l => {
         const row = document.createElement("tr");
+        const badgeClass = l.status === 'approved' ? 'badge-approved' : l.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
 
         row.innerHTML = `
-            <td>${l.name}</td>
-            <td>${l.student_id}</td>
-            <td>${l.reason}</td>
-            <td>${l.status}</td>
+            <td style="font-weight:600;color:var(--text);">${l.name}</td>
+            <td style="font-family:monospace;font-size:13px;">${l.student_id}</td>
+            <td style="max-width:220px;color:var(--text-2);">${l.reason}</td>
+            <td><span class="badge ${badgeClass}">${l.status}</span></td>
             <td>
-                ${
-                    l.status === "pending"
-                    ? `
-                    <button onclick="approve(${l.id})">Approve</button>
-                    <button onclick="reject(${l.id})">Reject</button>
-                    `
-                    : "✔ Done"
+                ${l.status === "pending"
+                    ? `<button class="btn-sm btn-approve" onclick="approve(${l.id})">Approve</button>
+                       <button class="btn-sm btn-reject" onclick="reject(${l.id})">Reject</button>`
+                    : `<span style="color:var(--muted);font-size:13px;">—</span>`
                 }
             </td>
         `;
-
         table.appendChild(row);
     });
 });
@@ -59,10 +64,7 @@ function approve(id) {
         body: JSON.stringify({leave_id: id})
     })
     .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        location.reload();
-    });
+    .then(data => { alert(data.message); location.reload(); });
 }
 
 function reject(id) {
@@ -72,10 +74,7 @@ function reject(id) {
         body: JSON.stringify({leave_id: id})
     })
     .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        location.reload();
-    });
+    .then(data => { alert(data.message); location.reload(); });
 }
 </script>
 

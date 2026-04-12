@@ -1,28 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Attendance Records</h1>
+<div class="page-header">
+    <div class="page-header-icon">📋</div>
+    <div>
+        <h1>Attendance Records</h1>
+        <p>Complete log of all attendance entries</p>
+    </div>
+</div>
 
-
-
-<br><br>
-
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Date</th>
-        <th>Time</th>
-    </tr>
-
+<table>
+    <thead>
+        <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody>
     {% for r in records %}
     <tr>
-        <td>{{ r.id }}</td>
-        <td>{{ r.name }}</td>
+        <td style="font-family:monospace; font-size:13px;">{{ r.id }}</td>
+        <td style="font-weight:600; color:var(--text);">{{ r.name }}</td>
         <td>{{ r.date }}</td>
-        <td>{{ r.time }}</td>
+        <td style="font-family:monospace; color:var(--muted);">{{ r.time }}</td>
     </tr>
     {% endfor %}
+    </tbody>
 </table>
 
 {% endblock %}

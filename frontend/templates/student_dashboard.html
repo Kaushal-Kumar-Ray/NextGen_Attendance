@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Student Dashboard</h1>
+<div class="page-header">
+    <div class="page-header-icon">🎓</div>
+    <div>
+        <h1>Student Dashboard</h1>
+        <p>Your attendance summary and leave management</p>
+    </div>
+</div>
 
 <div class="card student-card">
 
@@ -10,39 +16,59 @@
 
         {% if student %}
             <h2>{{ student.name }}</h2>
-            <p><strong>ID:</strong> {{ student.id }}</p>
+            <p style="color:var(--muted); font-size:13px; margin-top:4px;">
+                Student ID: &nbsp;<code style="background:var(--surface-2); padding:2px 8px; border-radius:4px; font-size:13px; color:var(--text-2);">{{ student.id }}</code>
+            </p>
         {% else %}
-            <h2>No student data</h2>
+            <h2 style="color:var(--muted);">No student data</h2>
         {% endif %}
 
-        <hr style="margin:20px 0;">
+        <hr style="border:none; border-top:1px solid var(--border); margin:22px 0;">
 
-        <h3>Attendance</h3>
+        <p style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:10px;">Attendance</p>
 
-        <!-- ✅ SAFE CHECK -->
         {% if percentage is defined %}
-            <h2>{{ percentage }}%</h2>
+            <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:10px;">
+                <span style="font-size:42px; font-weight:700; letter-spacing:-1px; color:
+                    {% if percentage >= 80 %}var(--success)
+                    {% elif percentage >= 50 %}var(--warning)
+                    {% else %}var(--danger){% endif %};">
+                    {{ percentage }}%
+                </span>
+            </div>
+
+            <div class="progress-bar" style="width:180px; height:8px; margin-bottom:10px;">
+                <div class="progress-fill
+                    {% if percentage >= 80 %}good
+                    {% elif percentage >= 50 %}mid
+                    {% else %}low{% endif %}"
+                    style="width:{{ percentage }}%">
+                </div>
+            </div>
 
             {% if percentage >= 80 %}
-                <p>✅ Good Attendance</p>
+                <p style="color:var(--success); font-weight:600; font-size:13.5px;">✅ Good Standing</p>
             {% else %}
-                <p class="low-attendance">⚠ Low Attendance (Approval Needed)</p>
+                <p class="low-attendance" style="font-size:13.5px;">⚠ Low Attendance — Approval Required for Leave</p>
             {% endif %}
+
         {% else %}
-            <p>Attendance data not available</p>
+            <p style="color:var(--muted);">Attendance data not available</p>
         {% endif %}
 
-        <button onclick="applyLeave()">Apply Leave</button>
-        <p id="msg"></p>
+        <button onclick="applyLeave()" style="margin-top:24px; padding:11px 22px;">
+            Apply for Leave
+        </button>
+        <p id="msg" style="margin-top:12px; font-size:13.5px; color:var(--text-2);"></p>
 
     </div>
 
     <!-- RIGHT IMAGE -->
     <div class="student-image">
         {% if student and student.image_url %}
-            <img src="{{ student.image_url }}" alt="Student">
+            <img src="{{ student.image_url }}" alt="{{ student.name }}">
         {% else %}
-            <div class="no-image">No Image</div>
+            <div class="no-image">No Photo</div>
         {% endif %}
     </div>
 
@@ -51,12 +77,10 @@
 <script>
 function applyLeave() {
     const reason = prompt("Enter reason for leave:");
-
     if (!reason || reason.trim() === "") {
-        document.getElementById("msg").innerText = "Please enter valid reason";
+        document.getElementById("msg").innerText = "Please enter a valid reason.";
         return;
     }
-
     fetch("/apply-leave", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
