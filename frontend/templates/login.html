@@ -2,420 +2,578 @@
 {% block content %}
 
 <style>
+/* ── RESET PAGE MARGINS ── */
 body {
-    background: #f4f6fb;
+    background: #050d1a;
     min-height: 100vh;
+    overflow: hidden;
 }
 
-.login-page {
+.login-page-wrap {
+    position: relative;
+    min-height: 100vh;
     display: flex;
-    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
     margin: -36px -40px;
+    overflow: hidden;
 }
 
-/* ── LEFT DARK PANEL ── */
+/* ── ANIMATED BACKGROUND ORBS ── */
+.bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.18;
+    animation: floatOrb 12s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+.orb1 { width: 600px; height: 600px; background: #1a6bff; top: -180px; left: -160px; animation-delay: 0s; }
+.orb2 { width: 500px; height: 500px; background: #00d4ff; bottom: -160px; right: -120px; animation-delay: -4s; }
+.orb3 { width: 350px; height: 350px; background: #0050c8; top: 40%; left: 40%; animation-delay: -8s; }
+
+@keyframes floatOrb {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%       { transform: translate(30px, -20px) scale(1.05); }
+    66%       { transform: translate(-20px, 30px) scale(0.97); }
+}
+
+/* ── GRID OVERLAY ── */
+.grid-overlay {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+}
+
+/* ── PARTICLES ── */
+.particles { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: rgba(0,180,255,0.5);
+    border-radius: 50%;
+    animation: rise linear infinite;
+}
+@keyframes rise {
+    0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-20px) translateX(var(--drift)); opacity: 0; }
+}
+
+/* ── MAIN CARD ── */
+.login-card {
+    position: relative; z-index: 10;
+    display: flex;
+    width: min(920px, 94vw);
+    min-height: 540px;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 0 1px rgba(0,140,255,0.12), 0 40px 100px rgba(0,0,0,0.6);
+    animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+}
+@keyframes cardIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Scanline shimmer */
+.login-card::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(0,200,255,0.4) 50%, transparent 100%);
+    animation: scanline 4s ease-in-out infinite;
+    pointer-events: none; z-index: 20;
+}
+@keyframes scanline {
+    0%   { transform: translateY(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.5; }
+    100% { transform: translateY(540px); opacity: 0; }
+}
+
+/* ── LEFT PANEL ── */
 .login-left {
-    width: 440px;
+    width: 340px;
     flex-shrink: 0;
-    background: #080e1c;
+    background: linear-gradient(160deg, rgba(10,30,70,0.95) 0%, rgba(5,14,40,0.98) 100%);
+    border-right: 1px solid rgba(255,255,255,0.06);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    padding: 60px 44px;
+    justify-content: center;
+    padding: 48px 36px;
     position: relative;
     overflow: hidden;
-    text-align: center;
 }
 
-/* Cyan ambient glow behind logo */
 .login-left::before {
     content: '';
-    position: absolute;
-    top: 12%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 360px;
-    height: 360px;
+    position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+    width: 320px; height: 320px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,220,255,0.12) 0%, transparent 68%);
+    background: radial-gradient(circle, rgba(0,140,255,0.15) 0%, transparent 70%);
     pointer-events: none;
 }
 
-.login-left::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,220,255,0.22), transparent);
-}
-
-.login-brand {
+/* Spinning ring around icon */
+.brand-ring {
     position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 120px; height: 120px;
+    margin-bottom: 24px;
+}
+.brand-ring svg {
+    position: absolute; inset: 0;
+    animation: spinRing 12s linear infinite;
+}
+@keyframes spinRing { to { transform: rotate(360deg); } }
+
+.brand-icon {
+    position: absolute; inset: 12px;
+    background: linear-gradient(135deg, #0a2555, #0d1f44);
+    border-radius: 50%;
+    border: 1px solid rgba(0,160,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
 }
 
-.login-logo-img {
-    width: 220px;
-    height: 220px;
-    object-fit: contain;
-    margin-bottom: 10px;
-    filter: drop-shadow(0 0 32px rgba(0, 210, 255, 0.42));
-    transition: filter 0.4s ease;
+.brand-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: #fff; letter-spacing: -0.3px;
+    margin-bottom: 4px; text-align: center;
 }
 
-.login-logo-img:hover {
-    filter: drop-shadow(0 0 56px rgba(0, 210, 255, 0.65));
+.brand-sub {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 4px; text-transform: uppercase;
+    color: rgba(0,200,255,0.5);
+    margin-bottom: 20px; text-align: center;
 }
 
-.login-tagline {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: rgba(0, 210, 255, 0.5);
-    margin-bottom: 14px;
+.brand-desc {
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.32);
+    line-height: 1.75; text-align: center;
+    margin-bottom: 28px; max-width: 220px;
 }
 
-.login-brand p {
-    color: rgba(255,255,255,0.38);
-    font-size: 13px;
-    line-height: 1.75;
-    margin-bottom: 36px;
-    max-width: 280px;
+.feature-pills {
+    display: flex; flex-wrap: wrap;
+    gap: 7px; justify-content: center;
+    position: relative; z-index: 2;
 }
 
-.login-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    position: relative;
-    z-index: 2;
-}
-
-.login-pill {
-    background: rgba(0,210,255,0.07);
-    border: 1px solid rgba(0,210,255,0.16);
-    color: rgba(0,210,255,0.7);
-    padding: 5px 13px;
+.feature-pill {
+    background: rgba(0,140,255,0.09);
+    border: 1px solid rgba(0,160,255,0.18);
+    color: rgba(0,200,255,0.65);
+    padding: 5px 12px;
     border-radius: 100px;
-    font-size: 11.5px;
-    font-weight: 500;
+    font-size: 11px; font-weight: 500;
+    animation: pillPulse 3s ease-in-out infinite;
+}
+.feature-pill:nth-child(2) { animation-delay: 0.5s; }
+.feature-pill:nth-child(3) { animation-delay: 1s; }
+.feature-pill:nth-child(4) { animation-delay: 1.5s; }
+@keyframes pillPulse {
+    0%,100% { border-color: rgba(0,160,255,0.18); }
+    50%      { border-color: rgba(0,200,255,0.4); }
 }
 
-.login-footer {
-    position: absolute;
-    bottom: 22px;
-    left: 0; right: 0;
-    text-align: center;
-    font-size: 11px;
-    color: rgba(255,255,255,0.18);
-    z-index: 2;
+.left-footer {
+    position: absolute; bottom: 18px; left: 0; right: 0;
+    text-align: center; font-size: 10.5px;
+    color: rgba(255,255,255,0.15);
 }
 
-/* ── RIGHT LIGHT PANEL ── */
+/* ── RIGHT PANEL ── */
 .login-right {
     flex: 1;
+    background: rgba(8,18,40,0.92);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 60px 48px;
-    background: #f4f6fb;
+    padding: 48px 44px;
 }
 
-.login-form-box {
-    width: 100%;
-    max-width: 400px;
-}
+.login-form-box { width: 100%; max-width: 340px; }
 
+/* Badge */
 .secure-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: var(--accent-bg);
-    color: var(--accent);
-    border: 1px solid #bfdbfe;
-    padding: 5px 12px;
+    gap: 8px;
+    background: rgba(0,140,255,0.1);
+    color: rgba(0,200,255,0.8);
+    border: 1px solid rgba(0,160,255,0.2);
+    padding: 5px 13px;
     border-radius: 100px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11.5px; font-weight: 500;
     margin-bottom: 22px;
+    animation: fadeDown 0.6s 0.4s both;
 }
+.badge-dot {
+    width: 6px; height: 6px;
+    background: #00d4ff;
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+@keyframes fadeDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
 
+/* Title */
 .login-form-box h2 {
     font-family: 'DM Serif Display', serif;
-    font-size: 30px;
-    color: var(--text);
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
+    font-size: 28px; color: #fff;
+    letter-spacing: -0.4px;
+    margin-bottom: 5px;
+    animation: slideUp 0.6s 0.3s both;
 }
-
-.login-form-box .subtitle {
-    color: var(--muted);
-    font-size: 14px;
-    margin-bottom: 28px;
+.login-subtitle {
+    color: rgba(255,255,255,0.35);
+    font-size: 13px; margin-bottom: 26px;
+    animation: slideUp 0.6s 0.4s both;
 }
+@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
 
+/* Role tabs */
 .role-tabs {
     display: flex;
-    background: var(--surface-2);
-    border-radius: var(--radius-sm);
-    padding: 4px;
-    gap: 4px;
-    margin-bottom: 24px;
-    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 4px; gap: 4px;
+    margin-bottom: 22px;
+    animation: slideUp 0.6s 0.5s both;
 }
-
 .role-tab {
-    flex: 1;
-    padding: 9px;
-    border: none;
-    border-radius: 6px;
+    flex: 1; padding: 9px;
+    border: none; border-radius: 7px;
     background: transparent;
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 500;
+    color: rgba(255,255,255,0.38);
+    font-size: 13.5px; font-weight: 500;
     cursor: pointer;
-    transition: var(--transition);
-    margin-top: 0;
-    box-shadow: none;
+    transition: all 0.22s ease;
     font-family: 'DM Sans', sans-serif;
+    margin-top: 0; box-shadow: none;
 }
-
 .role-tab.active {
-    background: var(--surface);
-    color: var(--primary);
-    font-weight: 600;
-    box-shadow: var(--shadow-sm);
+    background: rgba(37,99,235,0.85);
+    color: #fff; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.35);
 }
-
 .role-tab:hover:not(.active) {
-    color: var(--text);
-    background: rgba(255,255,255,0.6);
-    box-shadow: none;
-    transform: none;
+    color: rgba(255,255,255,0.65);
+    background: rgba(255,255,255,0.05);
+    transform: none; box-shadow: none;
 }
 
-.field {
+/* Fields */
+.login-field {
     margin-bottom: 14px;
-    position: relative;
+    animation: slideUp 0.6s 0.55s both;
 }
-
-.field label {
+.login-field label {
     display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-2);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 7px;
+    text-transform: uppercase; letter-spacing: 0.7px;
 }
-
-.field input {
-    margin-top: 0;
-    padding-left: 40px;
-}
-
-.field-icon {
-    position: absolute;
-    left: 13px;
-    top: 50%;
+.login-input-wrap { position: relative; }
+.login-field-icon {
+    position: absolute; left: 13px; top: 50%;
     transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 15px;
-    pointer-events: none;
+    font-size: 15px; pointer-events: none; opacity: 0.5; z-index: 2;
+}
+.login-field input {
+    width: 100%;
+    padding: 12px 14px 12px 40px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    transition: all 0.22s ease;
+    outline: none;
+    margin-top: 0;
+}
+.login-field input::placeholder { color: rgba(255,255,255,0.22); }
+.login-field input:focus {
+    border-color: rgba(37,99,235,0.7);
+    background: rgba(37,99,235,0.08);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
 }
 
+/* Submit button */
 .btn-login {
     width: 100%;
     padding: 13px;
-    margin-top: 8px;
-    background: var(--primary);
-    color: white;
-    font-size: 14.5px;
-    font-weight: 600;
-    border-radius: var(--radius-sm);
-    border: none;
+    margin-top: 6px;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    color: #fff;
+    font-size: 14.5px; font-weight: 600;
+    border-radius: 10px; border: none;
     cursor: pointer;
-    transition: var(--transition);
     font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.2px;
+    transition: all 0.25s ease;
+    position: relative; overflow: hidden;
+    animation: slideUp 0.6s 0.7s both;
 }
-
+.btn-login::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.25s;
+}
+.btn-login:hover::before { opacity: 1; }
 .btn-login:hover {
-    background: var(--primary-light);
-    box-shadow: var(--shadow-primary);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(37,99,235,0.45);
 }
+.btn-login:active { transform: translateY(0); box-shadow: none; }
 
+/* OTP */
 .otp-section {
     display: none;
-    margin-top: 16px;
-    padding: 16px;
-    background: var(--accent-bg);
-    border: 1px solid #bfdbfe;
-    border-radius: var(--radius-sm);
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: rgba(0,140,255,0.07);
+    border: 1px solid rgba(0,140,255,0.2);
+    border-radius: 10px;
 }
-
 .otp-section label {
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--accent);
-    margin-bottom: 8px;
     display: block;
+    font-size: 12px; font-weight: 500;
+    color: rgba(0,200,255,0.7);
+    margin-bottom: 8px;
 }
-
 .otp-section input {
-    margin-top: 0;
-    letter-spacing: 6px;
-    font-size: 18px;
-    font-weight: 700;
-    text-align: center;
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(0,160,255,0.25);
+    border-radius: 8px;
+    color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 20px; font-weight: 700;
+    text-align: center; letter-spacing: 10px;
+    outline: none; transition: all 0.2s; margin-top: 0;
+}
+.otp-section input:focus {
+    border-color: rgba(0,200,255,0.5);
+    box-shadow: 0 0 0 3px rgba(0,160,255,0.12);
 }
 
 .login-hint {
-    margin-top: 16px;
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
+    margin-top: 16px; text-align: center;
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.2);
+    animation: slideUp 0.6s 0.8s both;
 }
 
+/* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-    .login-page { flex-direction: column; margin: -24px -20px; }
-    .login-left { width: 100%; padding: 44px 28px 38px; }
-    .login-right { padding: 40px 28px; }
-    .login-logo-img { width: 160px; height: 160px; }
+    .login-page-wrap { margin: -24px -20px; }
+    .login-card { flex-direction: column; min-height: unset; }
+    .login-left { width: 100%; padding: 36px 28px 28px; }
+    .login-right { padding: 36px 24px; }
+    .brand-ring { width: 90px; height: 90px; }
+    .brand-icon { font-size: 26px; }
 }
 </style>
 
-<div class="login-page">
+<div class="login-page-wrap">
+    <!-- Background effects -->
+    <div class="bg-orb orb1"></div>
+    <div class="bg-orb orb2"></div>
+    <div class="bg-orb orb3"></div>
+    <div class="grid-overlay"></div>
+    <div class="particles" id="particles"></div>
 
-    <!-- LEFT -->
-    <div class="login-left">
-        <div class="login-brand">
-            <img
-                src="{{ url_for('static', filename='images/image1.png') }}"
-                alt="NextGen Attendance Logo"
-                class="login-logo-img"
-            >
-            <p class="login-tagline">AI · Attendance · System</p>
-            <p>Secure face-recognition attendance management for institutions — fast, smart, and seamless.</p>
+    <div class="login-card">
+
+        <!-- LEFT -->
+        <div class="login-left">
+            <div class="brand-ring">
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="60" r="56" stroke="rgba(0,160,255,0.15)" stroke-width="1"/>
+                    <circle cx="60" cy="60" r="56" stroke="url(#spin1)" stroke-width="1.5" stroke-dasharray="60 300"/>
+                    <circle cx="60" cy="60" r="46" stroke="rgba(0,160,255,0.08)" stroke-width="1"/>
+                    <circle cx="60" cy="60" r="46" stroke="url(#spin2)" stroke-width="1" stroke-dasharray="30 260"/>
+                    <defs>
+                        <linearGradient id="spin1" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#00c8ff"/>
+                            <stop offset="1" stop-color="transparent"/>
+                        </linearGradient>
+                        <linearGradient id="spin2" x1="120" y1="0" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#2563eb"/>
+                            <stop offset="1" stop-color="transparent"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="brand-icon">
+                    <img src="{{ url_for('static', filename='images/image1.png') }}" alt="Logo"
+                         style="width:70%; height:70%; object-fit:contain; border-radius:50%; filter:drop-shadow(0 0 10px rgba(0,200,255,0.4));"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <span style="display:none; font-size:36px;">🎓</span>
+                </div>
+            </div>
+
+            <div class="brand-name">NextGen</div>
+            <div class="brand-sub">AI · Attendance · System</div>
+            <div class="brand-desc">Secure face-recognition attendance management for institutions — fast, smart, and seamless.</div>
+
+            <div class="feature-pills">
+                <span class="feature-pill">📷 Face Recognition</span>
+                <span class="feature-pill">📊 Analytics</span>
+                <span class="feature-pill">📋 Leave Management</span>
+                <span class="feature-pill">🔐 Secure OTP</span>
+            </div>
+
+            <div class="left-footer">© 2026 NextGen Attendance System</div>
         </div>
 
-        <div class="login-pills">
-            <span class="login-pill">📷 Face Recognition</span>
-            <span class="login-pill">📊 Analytics</span>
-            <span class="login-pill">📋 Leave Management</span>
-            <span class="login-pill">🔐 Secure OTP</span>
+        <!-- RIGHT -->
+        <div class="login-right">
+            <div class="login-form-box">
+
+                <div class="secure-badge">
+                    <div class="badge-dot"></div>
+                    Secure Sign In
+                </div>
+
+                <h2>Welcome Back</h2>
+                <p class="login-subtitle">Please sign in to continue to your account.</p>
+
+                <div class="role-tabs">
+                    <button class="role-tab active" onclick="setRole('student', this)">Student</button>
+                    <button class="role-tab" onclick="setRole('admin', this)">Admin</button>
+                </div>
+
+                <!-- STUDENT -->
+                <div id="studentLogin">
+                    <div class="login-field">
+                        <label>Student ID</label>
+                        <div class="login-input-wrap">
+                            <span class="login-field-icon">👤</span>
+                            <input type="text" id="id" placeholder="Enter your student ID">
+                        </div>
+                    </div>
+                    <div class="login-field">
+                        <label>Password</label>
+                        <div class="login-input-wrap">
+                            <span class="login-field-icon">🔒</span>
+                            <input type="password" id="password" placeholder="Enter your password">
+                        </div>
+                    </div>
+                    <button class="btn-login" onclick="login()">Sign In →</button>
+                </div>
+
+                <!-- ADMIN -->
+                <div id="adminLogin" style="display:none;">
+                    <div class="login-field">
+                        <label>Admin ID</label>
+                        <div class="login-input-wrap">
+                            <span class="login-field-icon">👤</span>
+                            <input type="text" id="admin_id" placeholder="Enter admin ID">
+                        </div>
+                    </div>
+                    <div class="login-field">
+                        <label>Admin Email</label>
+                        <div class="login-input-wrap">
+                            <span class="login-field-icon">✉️</span>
+                            <input type="email" id="admin_email" placeholder="Enter admin email">
+                        </div>
+                    </div>
+                    <button class="btn-login" onclick="sendOtp()">Send OTP →</button>
+
+                    <div class="otp-section" id="otpSection">
+                        <label>Enter the OTP sent to your email</label>
+                        <input type="text" id="otp" placeholder="• • • • • •" maxlength="6">
+                        <button class="btn-login" style="margin-top:12px;" onclick="verifyOtp()">Verify & Sign In →</button>
+                    </div>
+                </div>
+
+                <p class="login-hint">Use your valid credentials to continue.</p>
+            </div>
         </div>
 
-        <div class="login-footer">© 2026 NextGen Attendance System</div>
     </div>
-
-    <!-- RIGHT -->
-    <div class="login-right">
-        <div class="login-form-box">
-
-            <div class="secure-badge">🛡️ &nbsp;Secure Sign In</div>
-            <h2>Welcome Back</h2>
-            <p class="subtitle">Please sign in to continue to your account.</p>
-
-            <div class="role-tabs">
-                <button class="role-tab active" onclick="setRole('student', this)">Student</button>
-                <button class="role-tab" onclick="setRole('admin', this)">Admin</button>
-            </div>
-
-            <!-- STUDENT -->
-            <div id="studentLogin">
-                <div class="field">
-                    <label>Student ID</label>
-                    <span class="field-icon">👤</span>
-                    <input type="text" id="id" placeholder="Enter your student ID">
-                </div>
-                <div class="field">
-                    <label>Password</label>
-                    <span class="field-icon">🔒</span>
-                    <input type="password" id="password" placeholder="Enter your password">
-                </div>
-                <button class="btn-login" onclick="login()">Sign In</button>
-            </div>
-
-            <!-- ADMIN -->
-            <div id="adminLogin" style="display:none;">
-                <div class="field">
-                    <label>Admin ID</label>
-                    <span class="field-icon">👤</span>
-                    <input type="text" id="admin_id" placeholder="Enter admin ID">
-                </div>
-                <div class="field">
-                    <label>Admin Email</label>
-                    <span class="field-icon">✉️</span>
-                    <input type="email" id="admin_email" placeholder="Enter admin email">
-                </div>
-                <button class="btn-login" onclick="sendOtp()">Send OTP →</button>
-
-                <div class="otp-section" id="otpSection">
-                    <label>Enter the OTP sent to your email</label>
-                    <input type="text" id="otp" placeholder="000000" maxlength="6">
-                    <button class="btn-login" style="margin-top:12px;" onclick="verifyOtp()">Verify & Sign In</button>
-                </div>
-            </div>
-
-            <p class="login-hint">Use your valid credentials to continue.</p>
-
-        </div>
-    </div>
-
 </div>
 
 <script>
+// Generate floating particles
+(function() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 28; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.cssText = `
+            left: ${Math.random() * 100}%;
+            width: ${Math.random() < 0.3 ? 3 : 2}px;
+            height: ${Math.random() < 0.3 ? 3 : 2}px;
+            --drift: ${(Math.random() - 0.5) * 80}px;
+            animation-duration: ${6 + Math.random() * 10}s;
+            animation-delay: ${Math.random() * -14}s;
+            opacity: ${0.3 + Math.random() * 0.5};
+        `;
+        container.appendChild(p);
+    }
+})();
+
 function setRole(role, el) {
     document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('studentLogin').style.display = role === 'student' ? 'block' : 'none';
-    document.getElementById('adminLogin').style.display  = role === 'admin'   ? 'block' : 'none';
+    document.getElementById('adminLogin').style.display   = role === 'admin'   ? 'block' : 'none';
 }
 
-function login(){
-    const id = document.getElementById("id").value;
-    const password = document.getElementById("password").value;
-    fetch("/login", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({id, password, role:"student"})
+function login() {
+    const id = document.getElementById('id').value;
+    const password = document.getElementById('password').value;
+    fetch('/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id, password, role: 'student'})
     })
-    .then(r=>r.json())
-    .then(d=>{ if(d.success) window.location.href="/student-dashboard"; else alert(d.message); });
+    .then(r => r.json())
+    .then(d => { if (d.success) window.location.href = '/student-dashboard'; else alert(d.message); });
 }
 
-function sendOtp(){
-    const id = document.getElementById("admin_id").value;
-    const email = document.getElementById("admin_email").value;
-    fetch("/admin/send-otp",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({id,email})
+function sendOtp() {
+    const id    = document.getElementById('admin_id').value;
+    const email = document.getElementById('admin_email').value;
+    fetch('/admin/send-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id, email})
     })
-    .then(r=>r.json())
-    .then(d=>{
-        if(d.success){ alert("OTP sent to your email"); document.getElementById("otpSection").style.display="block"; }
-        else alert(d.message);
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            alert('OTP sent to your email');
+            document.getElementById('otpSection').style.display = 'block';
+        } else alert(d.message);
     });
 }
 
-function verifyOtp(){
-    const email = document.getElementById("admin_email").value;
-    const otp   = document.getElementById("otp").value;
-    fetch("/admin/verify-otp",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({email,otp})
+function verifyOtp() {
+    const email = document.getElementById('admin_email').value;
+    const otp   = document.getElementById('otp').value;
+    fetch('/admin/verify-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, otp})
     })
-    .then(r=>r.json())
-    .then(d=>{ if(d.success) window.location.href="/dashboard"; else alert(d.message); });
+    .then(r => r.json())
+    .then(d => { if (d.success) window.location.href = '/dashboard'; else alert(d.message); });
 }
 </script>
 
