@@ -5,8 +5,14 @@
     <div class="page-header-icon">📋</div>
     <div>
         <h1>Attendance Records</h1>
-        <p>Complete log of all attendance entries</p>
+        <p>Complete historical log of all daily entries.</p>
     </div>
+</div>
+
+<!-- Search option (id) in Records requirement -->
+<div class="filter-bar">
+    <label for="searchId">Search Record:</label>
+    <input type="text" id="searchId" class="search-input" placeholder="Enter Student ID..." onkeyup="searchRecords()">
 </div>
 
 <table>
@@ -18,16 +24,32 @@
             <th>Time</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="recordsTable">
     {% for r in records %}
-    <tr>
-        <td style="font-family:monospace; font-size:13px;">{{ r.id }}</td>
+    <tr class="record-row">
+        <td class="record-id" style="font-family:monospace; font-weight:600; color:var(--primary);">{{ r.id }}</td>
         <td style="font-weight:600; color:var(--text);">{{ r.name }}</td>
         <td>{{ r.date }}</td>
-        <td style="font-family:monospace; color:var(--muted);">{{ r.time }}</td>
+        <td style="color:var(--muted);">{{ r.time }}</td>
     </tr>
     {% endfor %}
     </tbody>
 </table>
+
+<script>
+function searchRecords() {
+    const query = document.getElementById("searchId").value.toLowerCase();
+    const rows = document.querySelectorAll(".record-row");
+    
+    rows.forEach(row => {
+        const idCell = row.querySelector(".record-id").innerText.toLowerCase();
+        if (idCell.includes(query)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+</script>
 
 {% endblock %}

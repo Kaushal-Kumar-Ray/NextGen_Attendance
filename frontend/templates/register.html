@@ -9,48 +9,41 @@
     </div>
 </div>
 
-<div class="register-wrapper">
+<div class="dashboard-top">
 
     <!-- FORM -->
-    <div class="card register-card">
-        <h3 style="font-size:15px; font-weight:600; color:var(--text); margin-bottom:18px;">Student Details</h3>
+    <div class="card">
+        <h3 style="font-size:18px; margin-bottom:20px;">Student Details</h3>
 
-        <div style="margin-bottom:12px;">
-            <label style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Student ID</label>
-            <input type="text" id="student_id" placeholder="e.g. STU2024001" style="margin-top:0;">
+        <div style="margin-bottom:16px;">
+            <label style="font-size:13px; font-weight:600; color:var(--text-2); display:block; margin-bottom:6px;">Student ID</label>
+            <input type="text" id="student_id" placeholder="e.g. STU2024001" class="search-input" style="width:100%;">
         </div>
 
-        <div style="margin-bottom:18px;">
-            <label style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Full Name</label>
-            <input type="text" id="student_name" placeholder="e.g. Kaushal Kumar Ray" style="margin-top:0;">
+        <div style="margin-bottom:20px;">
+            <label style="font-size:13px; font-weight:600; color:var(--text-2); display:block; margin-bottom:6px;">Full Name</label>
+            <input type="text" id="student_name" placeholder="e.g. Kaushal Kumar Ray" class="search-input" style="width:100%;">
         </div>
 
-        <button onclick="startCapture()" style="width:100%;">📷 &nbsp;Start Face Capture</button>
+        <button onclick="startCapture()" style="width:100%; background:var(--primary); padding:12px;">📷 Start Face Capture</button>
 
-        <div style="margin-top:20px; padding:14px; background:var(--accent-bg); border:1px solid #bfdbfe; border-radius:var(--radius-sm);">
-            <p style="font-size:12.5px; color:var(--accent); font-weight:600; margin-bottom:4px;">How it works</p>
-            <p style="font-size:12px; color:var(--text-2); line-height:1.6;">
-                1. Fill in student details<br>
-                2. Click Start Capture<br>
-                3. Stay still — 30 frames will be captured<br>
-                4. Click Train Model to save
-            </p>
+        <div style="margin-top:24px; padding:16px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm);">
+            <p style="font-weight:600; margin-bottom:8px; font-size:14px;">Instructions:</p>
+            <ol style="padding-left:16px; color:var(--muted); font-size:13px; line-height:1.8;">
+                <li>Fill in the details above.</li>
+                <li>Click "Start Face Capture".</li>
+                <li>Look directly at the camera.</li>
+                <li>Wait for 30 frames to be processed.</li>
+                <li>Click "Train Model" when finished.</li>
+            </ol>
         </div>
     </div>
 
     <!-- CAMERA -->
-    <div class="camera-section">
-        <canvas id="canvas"></canvas>
-
-        <p class="instruction" style="margin-top:12px;">
-            Look straight at the camera until capture completes.
-        </p>
-
-        <p id="status" style="margin-top:8px; font-size:14px; font-weight:600; color:var(--text-2);"></p>
-
-        <button id="trainBtn" style="display:none; margin-top:16px; background:var(--success); color:white;" onclick="trainModel()">
-            💾 &nbsp;Train Model
-        </button>
+    <div class="card" style="display:flex; flex-direction:column; align-items:center;">
+        <canvas id="canvas" style="max-width:100%; border-radius:var(--radius-sm); border:1px solid var(--border-strong);"></canvas>
+        <p id="status" style="margin-top:16px; font-weight:600; color:var(--primary);"></p>
+        <button id="trainBtn" style="display:none; margin-top:16px; background:var(--success); width:100%;" onclick="trainModel()">💾 Train AI Model</button>
     </div>
 
 </div>

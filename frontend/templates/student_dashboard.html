@@ -4,74 +4,55 @@
 <div class="page-header">
     <div class="page-header-icon">🎓</div>
     <div>
-        <h1>Student Dashboard</h1>
-        <p>Your attendance summary and leave management</p>
+        <h1>Student Profile</h1>
+        <p>Your personal attendance overview and leave portal.</p>
     </div>
 </div>
 
-<div class="card student-card">
+<!-- Student image proper rectangle card requirement -->
+<div class="student-profile-rect">
+    
+    {% if student and student.image_url %}
+        <img src="{{ student.image_url }}" alt="{{ student.name }}" class="student-profile-img">
+    {% else %}
+        <div class="student-profile-img" style="background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--muted);">
+            No Photo
+        </div>
+    {% endif %}
 
-    <!-- LEFT CONTENT -->
-    <div class="student-info">
-
+    <div class="student-profile-info">
         {% if student %}
             <h2>{{ student.name }}</h2>
-            <p style="color:var(--muted); font-size:13px; margin-top:4px;">
-                Student ID: &nbsp;<code style="background:var(--surface-2); padding:2px 8px; border-radius:4px; font-size:13px; color:var(--text-2);">{{ student.id }}</code>
-            </p>
+            <p style="color:var(--muted); font-family:monospace; font-size:15px; background:var(--surface-2); display:inline-block; padding:4px 10px; border-radius:6px; border:1px solid var(--border);">ID: {{ student.id }}</p>
         {% else %}
-            <h2 style="color:var(--muted);">No student data</h2>
+            <h2>No student data loaded</h2>
         {% endif %}
 
-        <hr style="border:none; border-top:1px solid var(--border); margin:22px 0;">
-
-        <p style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:10px;">Attendance</p>
-
+        <!-- Visual graph or diagram of % of attendance requirement -->
         {% if percentage is defined %}
-            <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:10px;">
-                <span style="font-size:42px; font-weight:700; letter-spacing:-1px; color:
-                    {% if percentage >= 80 %}var(--success)
-                    {% elif percentage >= 50 %}var(--warning)
-                    {% else %}var(--danger){% endif %};">
-                    {{ percentage }}%
-                </span>
+        <div class="student-attendance-visual">
+            <svg viewBox="0 0 36 36" class="circular-chart">
+                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="circle {% if percentage >= 80 %}good{% elif percentage >= 50 %}mid{% else %}low{% endif %}" stroke-dasharray="{{ percentage }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <text x="18" y="20.35" class="percentage">{{ percentage }}%</text>
+            </svg>
+            
+            <div>
+                <h3 style="font-size:18px; color:var(--text); margin-bottom:4px;">Total Attendance</h3>
+                {% if percentage >= 80 %}
+                    <p class="status-green">Good Standing</p>
+                {% else %}
+                    <p class="status-red">Low Attendance Warning</p>
+                {% endif %}
             </div>
-
-            <div class="progress-bar" style="width:180px; height:8px; margin-bottom:10px;">
-                <div class="progress-fill
-                    {% if percentage >= 80 %}good
-                    {% elif percentage >= 50 %}mid
-                    {% else %}low{% endif %}"
-                    style="width:{{ percentage }}%">
-                </div>
-            </div>
-
-            {% if percentage >= 80 %}
-                <p style="color:var(--success); font-weight:600; font-size:13.5px;">✅ Good Standing</p>
-            {% else %}
-                <p class="low-attendance" style="font-size:13.5px;">⚠ Low Attendance — Approval Required for Leave</p>
-            {% endif %}
-
-        {% else %}
-            <p style="color:var(--muted);">Attendance data not available</p>
+        </div>
         {% endif %}
-
-        <button onclick="applyLeave()" style="margin-top:24px; padding:11px 22px;">
-            Apply for Leave
-        </button>
-        <p id="msg" style="margin-top:12px; font-size:13.5px; color:var(--text-2);"></p>
-
+        
+        <div style="margin-top:24px;">
+            <button onclick="applyLeave()">📝 Apply for Leave</button>
+            <p id="msg" style="margin-top:12px; font-size:13px; color:var(--muted);"></p>
+        </div>
     </div>
-
-    <!-- RIGHT IMAGE -->
-    <div class="student-image">
-        {% if student and student.image_url %}
-            <img src="{{ student.image_url }}" alt="{{ student.name }}">
-        {% else %}
-            <div class="no-image">No Photo</div>
-        {% endif %}
-    </div>
-
 </div>
 
 <script>

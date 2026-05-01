@@ -5,8 +5,19 @@
     <div class="page-header-icon">📝</div>
     <div>
         <h1>Leave Requests</h1>
-        <p>Review and manage student leave applications</p>
+        <p>Review and manage student leave applications.</p>
     </div>
+</div>
+
+<!-- Filters in leaves requirement -->
+<div class="filter-bar">
+    <label for="leaveFilter">Filter by Status:</label>
+    <select id="leaveFilter" class="filter-select" onchange="filterLeaves()">
+        <option value="all">All Requests</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+    </select>
 </div>
 
 <table>
@@ -25,13 +36,19 @@
 </table>
 
 <script>
+let allLeaves = [];
+
 fetch("/leaves")
 .then(res => res.json())
 .then(data => {
-    const table = document.getElementById("leaveTable");
+    allLeaves = data;
+    renderLeaves(data);
+});
 
+function renderLeaves(data) {
+    const table = document.getElementById("leaveTable");
     if (data.length === 0) {
-        table.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">No leave requests found</td></tr>`;
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">No leave requests found.</td></tr>`;
         return;
     }
 
@@ -42,40 +59,33 @@ fetch("/leaves")
 
         row.innerHTML = `
             <td style="font-weight:600;color:var(--text);">${l.name}</td>
-            <td style="font-family:monospace;font-size:13px;">${l.student_id}</td>
-            <td style="max-width:220px;color:var(--text-2);">${l.reason}</td>
-            <td><span class="badge ${badgeClass}">${l.status}</span></td>
+            <td style="font-family:monospace;">${l.student_id}</td>
+            <td style="max-width:250px;">${l.reason}</td>
+            <td><span class="badge ${badgeClass}">${l.status.charAt(0).toUpperCase() + l.status.slice(1)}</span></td>
             <td>
                 ${l.status === "pending"
-                    ? `<button class="btn-sm btn-approve" onclick="approve(${l.id})">Approve</button>
-                       <button class="btn-sm btn-reject" onclick="reject(${l.id})">Reject</button>`
-                    : `<span style="color:var(--muted);font-size:13px;">—</span>`
+                    ? `<button class="btn-approve" onclick="approve(${l.id})">Approve</button>
+                       <button class="btn-reject" onclick="reject(${l.id})">Reject</button>`
+                    : `<span style="color:var(--muted);font-size:13px;">Handled</span>`
                 }
             </td>
         `;
         table.appendChild(row);
     });
-});
-
-function approve(id) {
-    fetch("/approve-leave", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({leave_id: id})
-    })
-    .then(res => res.json())
-    .then(data => { alert(data.message); location.reload(); });
 }
 
-function reject(id) {
-    fetch("/reject-leave", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({leave_id: id})
-    })
-    .then(res => res.json())
-    .then(data => { alert(data.message); location.reload(); });
+function filterLeaves() {
+    const filter = document.getElementById("leaveFilter").value;
+    if (filter === "all") {
+        renderLeaves(allLeaves);
+    } else {
+        const filtered = allLeaves.filter(l => l.status === filter);
+        renderLeaves(filtered);
+    }
 }
+
+function approve(id) { fetch("/approve-leave", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({leave_id: id}) }).then(()=>location.reload()); }
+function reject(id) { fetch("/reject-leave", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({leave_id: id}) }).then(()=>location.reload()); }
 </script>
 
 {% endblock %}

@@ -7,7 +7,6 @@ video.setAttribute("playsinline", true);
 
 let isProcessing = false;
 
-// 🎥 Start camera
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
     video.srcObject = stream;
@@ -15,71 +14,52 @@ navigator.mediaDevices.getUserMedia({ video: true })
 })
 .catch(() => alert("Camera access denied"));
 
-// 🔁 Main loop (optimized)
 setInterval(() => {
     if (!video.videoWidth || isProcessing) return;
 
     isProcessing = true;
-
-    // Maintain aspect ratio
     const width = video.videoWidth;
     const height = video.videoHeight;
-
     canvas.width = width;
     canvas.height = height;
 
-    // Draw video
     ctx.drawImage(video, 0, 0, width, height);
 
     fetch("/process_attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            image: canvas.toDataURL("image/jpeg")
-        })
+        body: JSON.stringify({ image: canvas.toDataURL("image/jpeg") })
     })
     .then(res => res.json())
     .then(data => {
         isProcessing = false;
-
-        // Redraw frame
         ctx.drawImage(video, 0, 0, width, height);
 
         if (!data.faces) return;
 
-        // 🔥 DRAW UI OVERLAY
         data.faces.forEach((face, i) => {
             const y = 40 + i * 40;
-
             const isUnknown = face.name === "Unknown";
+            
+            // Clean Silver theme canvas overlays
+            ctx.fillStyle = isUnknown ? "rgba(220, 38, 38, 0.85)" : "rgba(5, 150, 105, 0.85)";
+            ctx.fillRect(15, y - 25, 240, 35);
 
-            // Background label
-            ctx.fillStyle = isUnknown
-                ? "rgba(255, 0, 0, 0.7)"
-                : "rgba(0, 255, 120, 0.7)";
-
-            ctx.fillRect(15, y - 25, 220, 35);
-
-            // Text
-            ctx.fillStyle = "#000";
-            ctx.font = "bold 16px sans-serif";
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "600 16px 'DM Sans', sans-serif";
             ctx.fillText(face.name, 25, y);
         });
 
-        // 🎯 Center guide box (optional but pro feel)
-        ctx.strokeStyle = "rgba(0,255,255,0.5)";
+        // Clean guide box
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
         ctx.lineWidth = 2;
-        ctx.strokeRect(
-            width * 0.25,
-            height * 0.2,
-            width * 0.5,
-            height * 0.6
-        );
-
+        ctx.setLineDash([10, 10]);
+        ctx.strokeRect(width * 0.25, height * 0.2, width * 0.5, height * 0.6);
+        ctx.setLineDash([]);
     })
     .catch(err => {
         console.error(err);
         isProcessing = false;
     });
 
-}, 1200); // 🔥 faster + smoother (was 2000ms)
+}, 1200);

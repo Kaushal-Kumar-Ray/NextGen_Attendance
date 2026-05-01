@@ -4,28 +4,26 @@
 <div class="page-header">
     <div class="page-header-icon">📷</div>
     <div>
-        <h1>Live Attendance</h1>
+        <h1>Live Scanner</h1>
         <p>AI-powered face recognition — attendance is marked automatically</p>
     </div>
 </div>
 
-<div class="card" style="padding:24px; text-align:center;">
-    <div class="camera-wrapper" style="margin-top:0;">
-        <canvas id="canvas"></canvas>
+<div class="card" style="padding:32px; text-align:center;">
+    <div style="display:flex; justify-content:center;">
+        <canvas id="canvas" style="width:100%; max-width:800px; border-radius:12px; border:1px solid var(--border-strong); box-shadow:var(--shadow);"></canvas>
     </div>
 
-    <p id="status" style="margin-top:16px; font-size:14px; color:var(--text-2); font-weight:500;"></p>
-
-    <div style="margin-top:16px; display:inline-flex; align-items:center; gap:8px; background:var(--success-bg); border:1px solid #bbf7d0; padding:8px 16px; border-radius:100px;">
-        <span style="width:8px; height:8px; background:var(--success); border-radius:50%; display:inline-block; animation: pulse 1.5s infinite;"></span>
-        <span style="font-size:13px; font-weight:600; color:var(--success);">Camera Active — Scanning for faces</span>
+    <div style="margin-top:24px; display:inline-flex; align-items:center; gap:8px; background:var(--success-bg); border:1px solid #bbf7d0; padding:10px 20px; border-radius:100px;">
+        <span style="width:10px; height:10px; background:var(--success); border-radius:50%; animation: pulse 1.5s infinite;"></span>
+        <span style="font-size:14px; font-weight:600; color:var(--success);">Camera Active — Scanning for faces</span>
     </div>
 </div>
 
 <style>
 @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    50% { opacity: 0.3; }
 }
 </style>
 

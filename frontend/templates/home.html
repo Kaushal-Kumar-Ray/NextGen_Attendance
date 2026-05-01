@@ -4,67 +4,76 @@
 <div class="page-header">
     <div class="page-header-icon">📊</div>
     <div>
-        <h1>Dashboard</h1>
-        <p>Overview of today's attendance activity</p>
+        <h1>System Dashboard</h1>
+        <p>Live attendance overview and administrative controls.</p>
     </div>
 </div>
 
-<!-- SUMMARY CARDS -->
-<div class="cards">
-
-    <div class="card stat-card">
-        <div class="stat-icon">👨‍🎓</div>
-        <div>
-            <h2>{{ total_students }}</h2>
-            <p>Total Students</p>
+<!-- TOP SECTION WITH DONUT CHART AND STATS -->
+<div class="dashboard-top">
+    
+    <!-- Visual Representation Requirement -->
+    <div class="donut-card">
+        {% set total = total_students if total_students > 0 else 1 %}
+        {% set present_pct = ((present_today / total) * 100) | round %}
+        {% set absent_pct = ((absent_today / total) * 100) | round %}
+        
+        <h3 style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:16px;">Today's Attendance</h3>
+        <div class="donut-chart" style="background: conic-gradient(var(--success) 0% {{ present_pct }}%, var(--danger) {{ present_pct }}% 100%);">
+            <div class="donut-inner">
+                <h3>{{ present_pct }}%</h3>
+                <p>Present</p>
+            </div>
+        </div>
+        <div style="display:flex; gap:16px; margin-top:20px; font-size:12px; font-weight:600; color:var(--text-2);">
+            <div style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; background:var(--success); border-radius:2px;"></span> Present</div>
+            <div style="display:flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; background:var(--danger); border-radius:2px;"></span> Absent</div>
         </div>
     </div>
 
-    <div class="card stat-card">
-        <div class="stat-icon green">✅</div>
-        <div>
-            <h2>{{ present_today }}</h2>
-            <p>Present Today</p>
+    <!-- Summary Metrics (Counts) Requirement -->
+    <div class="cards" style="grid-template-columns: 1fr 1fr;">
+        <div class="card stat-card" style="grid-column: span 2;">
+            <div class="stat-icon" style="background: var(--bg);">👨‍🎓</div>
+            <div>
+                <h2>{{ total_students }}</h2>
+                <p>Total Students Enrolled</p>
+            </div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon green">✅</div>
+            <div>
+                <h2>{{ present_today }}</h2>
+                <p>Present Today</p>
+            </div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon red">❌</div>
+            <div>
+                <h2>{{ absent_today }}</h2>
+                <p>Absent Today</p>
+            </div>
         </div>
     </div>
-
-    <div class="card stat-card">
-        <div class="stat-icon red">❌</div>
-        <div>
-            <h2>{{ absent_today }}</h2>
-            <p>Absent Today</p>
-        </div>
-    </div>
-
-    <div class="card stat-card">
-        <div class="stat-icon blue">📅</div>
-        <div>
-            <h2 style="font-size:18px; letter-spacing:-0.5px;">{{ today }}</h2>
-            <p>Today's Date</p>
-        </div>
-    </div>
-
 </div>
 
-<!-- BOTTOM SECTION -->
-<div class="dashboard-bottom">
-
-    <div class="card action-card">
-        <h3 style="font-size:15px; font-weight:600; margin-bottom:4px; color:var(--text)">Quick Actions</h3>
-        <p style="font-size:13px; color:var(--muted); margin-bottom:4px;">Common tasks at a glance</p>
-        <button onclick="location.href='/register'">➕ &nbsp;Register Student</button>
-        <button onclick="location.href='/attendance'">📷 &nbsp;Start Attendance</button>
-        <button onclick="location.href='/records'">📊 &nbsp;View Records</button>
+<!-- BOTTOM ACTIONS -->
+<div class="cards" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+        <h3 style="font-size:16px; margin-bottom:12px;">Quick Actions</h3>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button onclick="location.href='/register'" style="background:var(--surface-2); color:var(--text); border:1px solid var(--border);">➕ Register Student</button>
+            <button onclick="location.href='/attendance'">📷 Start Attendance</button>
+            <button onclick="location.href='/records'" style="background:var(--surface-2); color:var(--text); border:1px solid var(--border);">📊 View Records</button>
+        </div>
     </div>
 
-    <div class="card info-card">
-        <h3 style="font-size:15px; font-weight:600; margin-bottom:4px; color:var(--text)">System Status</h3>
-        <p style="font-size:13px; color:var(--muted); margin-bottom:4px;">Live system health</p>
-        <p style="margin-top:16px;">🟢 &nbsp;Camera System: <strong>Active</strong></p>
-        <p>🧠 &nbsp;AI Model: <strong>Ready</strong></p>
-        <p>🗄️ &nbsp;Database: <strong>Connected</strong></p>
+    <div class="card">
+        <h3 style="font-size:16px; margin-bottom:12px;">System Status</h3>
+        <p style="font-size:14px; margin-bottom:8px;">🟢 Camera System: <strong>Active</strong></p>
+        <p style="font-size:14px; margin-bottom:8px;">🧠 AI Model: <strong>Ready & Trained</strong></p>
+        <p style="font-size:14px;">🗄️ Database: <strong>Connected</strong></p>
     </div>
-
 </div>
 
 {% endblock %}

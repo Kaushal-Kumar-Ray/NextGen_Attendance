@@ -4,51 +4,43 @@
 <div class="page-header">
     <div class="page-header-icon">👨‍🎓</div>
     <div>
-        <h1>Students</h1>
-        <p>All registered students and their attendance status</p>
+        <h1>Students Roster</h1>
+        <p>Manage all registered students and their attendance status.</p>
     </div>
 </div>
 
-<!-- SUMMARY ROW -->
-<div class="cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom:24px;">
-    <div class="card stat-card">
-        <div class="stat-icon">👥</div>
-        <div>
-            <h2>{{ total }}</h2>
-            <p>Total</p>
-        </div>
-    </div>
-    <div class="card stat-card">
-        <div class="stat-icon green">✅</div>
-        <div>
-            <h2>{{ present }}</h2>
-            <p>Present Today</p>
-        </div>
-    </div>
-    <div class="card stat-card">
-        <div class="stat-icon red">❌</div>
-        <div>
-            <h2>{{ absent }}</h2>
-            <p>Absent Today</p>
-        </div>
-    </div>
+<!-- Filters in students page requirement -->
+<div class="filter-bar">
+    <label for="attendanceFilter">Filter Status:</label>
+    <select id="attendanceFilter" class="filter-select" onchange="filterStudents()">
+        <option value="all">All Students</option>
+        <option value="present">Present Today</option>
+        <option value="absent">Absent Today</option>
+    </select>
 </div>
 
 <table>
     <thead>
         <tr>
-            <th>Student</th>
-            <th>ID</th>
-            <th>Status</th>
-            <th>Attendance</th>
             <th>Photo</th>
+            <th>Student Info</th>
+            <th>ID</th>
+            <th>Today's Status</th>
+            <th>Overall %</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="studentsTable">
     {% for s in students %}
-    <tr>
+    <tr class="student-row" data-status="{% if s.present %}present{% else %}absent{% endif %}">
+        <td>
+            {% if s.image_url %}
+                <img src="{{ s.image_url }}" width="40" height="40" style="border-radius:8px; object-fit:cover; border:1px solid var(--border);">
+            {% else %}
+                <div style="width:40px; height:40px; background:var(--surface-2); border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px;">N/A</div>
+            {% endif %}
+        </td>
         <td style="font-weight:600; color:var(--text);">{{ s.name }}</td>
-        <td style="font-family:monospace; font-size:13px;">{{ s.id }}</td>
+        <td style="font-family:monospace;">{{ s.id }}</td>
         <td>
             {% if s.present %}
                 <span class="status-green">Present</span>
@@ -56,30 +48,26 @@
                 <span class="status-red">Absent</span>
             {% endif %}
         </td>
-        <td>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div class="progress-bar" style="width:80px;">
-                    <div class="progress-fill
-                        {% if s.percentage >= 80 %}good
-                        {% elif s.percentage >= 50 %}mid
-                        {% else %}low{% endif %}"
-                        style="width: {{ s.percentage }}%">
-                    </div>
-                </div>
-                <span style="font-size:13px; font-weight:600; color:var(--text-2);">{{ s.percentage }}%</span>
-            </div>
-        </td>
-        <td>
-            {% if s.image_url %}
-                <img src="{{ s.image_url }}" width="36" height="36"
-                     style="border-radius:50%; object-fit:cover; border:2px solid var(--border);">
-            {% else %}
-                <span style="color:var(--muted); font-size:13px;">—</span>
-            {% endif %}
-        </td>
+        <td style="font-weight:600;">{{ s.percentage }}%</td>
     </tr>
     {% endfor %}
     </tbody>
 </table>
+
+<script>
+function filterStudents() {
+    const filter = document.getElementById("attendanceFilter").value;
+    const rows = document.querySelectorAll(".student-row");
+    
+    rows.forEach(row => {
+        const status = row.getAttribute("data-status");
+        if (filter === "all" || filter === status) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+</script>
 
 {% endblock %}
